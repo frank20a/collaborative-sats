@@ -1,4 +1,6 @@
-# Bare minimum
+# Notes on launch files
+
+## Bare minimum
 ```py
 from ament_index_python import get_package_share_directory
 from launch import LaunchDescription
@@ -23,7 +25,7 @@ def generate_launch_description():
         ),
     ])
 ```
-# Launch from launch file
+## Launch from launch file
 ```py
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
@@ -31,7 +33,7 @@ IncludeLaunchDescription(
     PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
 ),
 ```
-# Getting arguments
+## Getting arguments
 ```py
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
