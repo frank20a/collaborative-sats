@@ -13,7 +13,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 ```
 
-Imports the Node class and String message type
+Imports the Node class and [String message type](https://docs.ros2.org/latest/api/std_msgs/index-msg.html)
 
 ```py
 class MinimalPublisher(Node):
