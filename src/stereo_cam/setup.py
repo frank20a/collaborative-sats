@@ -29,7 +29,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'hello_world = ' + package_name + '.hello_world:main'
+            'stereo_viewer = ' + package_name + '.stereo_viewer:main'
         ],
     },
 )

@@ -3,3 +3,4 @@ install/
 log/
 src/stereo_cam/notes.txt
 src/stereo_cam/launch/launch files notes.txt
+src/stereo_cam/stereo_cam/__pycache__/
