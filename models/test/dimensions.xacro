@@ -1,0 +1,13 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Body --> 
+    <xacro:property name="body_x" value="0.5"/>
+    <xacro:property name="body_y" value="0.1"/>
+    <xacro:property name="body_z" value="${body_y}"/>
+    <xacro:property name="body_dim" value="${body_x} ${body_y} ${body_z}"/>
+
+    <!-- Rod -->
+    <xacro:property name="rod_r" value="${body_y/4}"/>
+    <xacro:property name="rod_len" value="0.8"/>
+</robot>

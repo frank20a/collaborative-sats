@@ -1,0 +1,106 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stereo">
+    <xacro:include filename="dimensions.xacro"/>
+    <xacro:include filename="macros.xacro"/>
+
+    <!-- World -->
+    <link name="world"></link>
+
+    <!-- BODY -->
+
+    <link name="body">
+        <collision>
+            <geometry>
+                <box size="${body_dim}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <box size="${body_dim}"/>
+            </geometry>
+        </visual>
+
+        <xacro:inertial_box mass="0.25" x="${body_x}" y="${body_y}" z="${body_z}">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="body_fix" type="fixed">
+        <origin xyz="0 0 ${body_z/2}"/>
+        <parent link="world"/>
+        <child link="body"/>
+    </joint>
+
+    <!-- ARM -->
+
+    <link name="arm">
+        <collision name="arm_collision">
+            <origin xyz="${-arm_length/2} 0 0"/>
+            <geometry>
+                <box size="${arm_coll_dim}"/>
+            </geometry>
+        </collision>
+
+        <visual name="arm_len">
+            <origin xyz="${(arm_thickness-arm_length)/2-body_x} 0 0"/>
+            <geometry>
+                <box size="${arm_vis1_dim}"/>
+            </geometry>
+        </visual>
+        <visual name="arm_span">
+            <origin xyz="${-body_x + arm_thickness/2} 0 0"/>
+            <geometry>
+                <box size="${arm_vis2_dim}"/>
+            </geometry>
+        </visual>
+
+        <xacro:inertial_box mass="0.4" x="${arm_length}" y="${arm_span}" z="${arm_thickness}">
+            <origin xyz="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="body_arm" type="prismatic">
+        <origin xyz="${body_x/2} 0 ${(body_z+arm_thickness)/2}"/>
+        <parent link="body"/>
+        <child link="arm"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="0" upper="${arm_length-body_x}" effort="100" velocity="100"/>
+    </joint>
+
+    <xacro:include filename="gazebo.xacro"/>
+
+    <!-- Camera R -->
+
+    <link name="camera_r_link">
+        <visual>
+            <origin xyz="${cam_size/2} 0 0"/>
+            <geometry>
+                <box size="${cam_size} ${cam_size} ${cam_size}"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="camera_r_fix" type="fixed">
+        <origin xyz = "0 ${ipd/2} 0"/>
+        <parent link = "arm"/>
+        <child link = "camera_r_link"/>
+    </joint>
+
+    <!-- Camera L -->
+
+    <link name="camera_l_link">
+        <visual>
+            <origin xyz="${cam_size/2} 0 0"/>
+            <geometry>
+                <box size="${cam_size} ${cam_size} ${cam_size}"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="camera_l_fix" type="fixed">
+        <origin xyz = "0 -${ipd/2} 0"/>
+        <parent link = "arm"/>
+        <child link = "camera_l_link"/>
+    </joint>
+</robot>
