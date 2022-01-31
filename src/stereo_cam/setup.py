@@ -29,7 +29,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'stereo_viewer = ' + package_name + '.stereo_viewer:main'
+            'stereo_viewer = ' + package_name + '.stereo_viewer:main',
+            'disparity_viewer = ' + package_name + '.disparity_viewer:main'
         ],
     },
 )

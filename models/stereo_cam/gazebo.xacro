@@ -24,15 +24,15 @@
     
     <!-- Camera R -->
     <gazebo reference="camera_r_link">
-        <sensor type="camera" name="camera_r">
-            <update_rate>20</update_rate>
+        <sensor type="camera" name="stereo/right">
+            <update_rate>30</update_rate>
             <visualize>true</visualize>
 
             <camera name="cam_r">
-                <horizontal_fov>1.3962634</horizontal_fov>
+                <horizontal_fov>1.04699999</horizontal_fov>
                 <image>
-                    <width>800</width>
-                    <height>800</height>
+                    <width>720</width>
+                    <height>480</height>
                     <format>R8G8B8</format>
                 </image>
                 <clip>
@@ -57,15 +57,15 @@
 
     <!-- Camera L -->
     <gazebo reference="camera_l_link">
-        <sensor type="camera" name="camera_l">
+        <sensor type="camera" name="stereo/left">
             <update_rate>30</update_rate>
             <visualize>true</visualize>
 
             <camera name="cam_l">
-                <horizontal_fov>1.3962634</horizontal_fov>
+                <horizontal_fov>1.04699999</horizontal_fov>
                 <image>
-                    <width>800</width>
-                    <height>800</height>
+                    <width>720</width>
+                    <height>480</height>
                     <format>R8G8B8</format>
                 </image>
                 <clip>
