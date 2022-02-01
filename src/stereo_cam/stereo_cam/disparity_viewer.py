@@ -56,12 +56,7 @@ class DisparityViewer(Node):
             'stereo/disparity', 
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
-        
-        self.publisher_pcl = self.create_publisher(
-            PointCloud2, 
-            'stereo/pointcloud', 
-            QoSPresetProfiles.get_from_short_key('sensor_data')
-        )
+
         
         self.create_timer(1/max_fps, self.disparity)
 
