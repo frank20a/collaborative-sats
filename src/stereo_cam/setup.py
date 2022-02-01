@@ -30,7 +30,9 @@ setup(
     entry_points={
         'console_scripts': [
             'stereo_viewer = ' + package_name + '.stereo_viewer:main',
-            'disparity_viewer = ' + package_name + '.disparity_viewer:main'
+            'disparity_viewer = ' + package_name + '.disparity_viewer:main',
+            'disparity_publisher = ' + package_name + '.disparity_publisher:main',
+            'pcl_publisher = ' + package_name + '.pcl_publisher:main'
         ],
     },
 )

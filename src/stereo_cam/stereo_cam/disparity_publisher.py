@@ -1,9 +1,10 @@
 from sympy import diag
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image, PointCloud2
+from sensor_msgs.msg import Image
 from rclpy.qos import QoSPresetProfiles
 from cv_bridge import CvBridge
+from stereo_msgs.msg import DisparityImage
 
 import cv2
 from time import time
@@ -24,7 +25,7 @@ stereo.setUniquenessRatio(15)
 stereo.setSpeckleRange(3)
 stereo.setMinDisparity(minDisparity)
 
-class ImageViewer(Node):
+class DisparityViewer(Node):
     def __init__(self):
         super().__init__("stereo_image_viewer")
 
@@ -34,7 +35,6 @@ class ImageViewer(Node):
         self.updated_l = False
 
         max_fps = 60
-        self.prev_t = time()
         
         self.create_subscription(
             Image,
@@ -50,11 +50,12 @@ class ImageViewer(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        self.publisher_pcl = self.create_publisher(
-            PointCloud2, 
-            'stereo/pointcloud', 
+        self.publisher_disp = self.create_publisher(
+            DisparityImage, 
+            'stereo/disparity', 
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
+
         
         self.create_timer(1/max_fps, self.disparity)
 
@@ -77,32 +78,19 @@ class ImageViewer(Node):
         disparity = (disparity/16.0 - (minDisparity-1))/numDisparities
 
         # ----> Send disparsity image message
-        # disp_msg = DisparityImage()
-        # disp_msg.max_disparity = 1.0
-        # disp_msg.min_disparity = 0.0
-        # disp_msg.delta_d = 1.0 / numDisparities
-        # disp_msg.image = bridge.cv2_to_imgmsg(disparity)
-        # disp_msg.t = 0.065
-        # disp_msg.f = (720 / 2) / np.tan(1.04699999 / 2)
-        # self.publisher_disp.publish(disp_msg)
-
-        # ----> Calculate FPS
-        fps = 1 / (time() - self.prev_t)
-        self.prev_t = time()
-        
-        # ----> Prepare disparsity image for preview
-        # print(np.max(disparity), np.min(disparity))
-        cv2.putText(disparity, "FPS: {0:d}".format(int(np.ceil(fps))), (80, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 3)
-        
-
-        # ----> Show disparsity image
-        cv2.imshow("Disparity Map",disparity)
-        cv2.waitKey(1)
+        disp_msg = DisparityImage()
+        disp_msg.max_disparity = 1.0
+        disp_msg.min_disparity = 0.0
+        disp_msg.delta_d = 1.0 / numDisparities
+        disp_msg.image = bridge.cv2_to_imgmsg(disparity)
+        disp_msg.t = 0.065
+        disp_msg.f = (720 / 2) / np.tan(1.04699999 / 2)
+        self.publisher_disp.publish(disp_msg)
 
 
 def main(args=None):
     rclpy.init(args=args)
-    viewer = ImageViewer()
+    viewer = DisparityViewer()
     rclpy.spin(viewer)
     viewer.destroy_node()
     rclpy.shutdown()
