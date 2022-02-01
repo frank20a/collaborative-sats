@@ -25,7 +25,7 @@ stereo.setUniquenessRatio(15)
 stereo.setSpeckleRange(3)
 stereo.setMinDisparity(minDisparity)
 
-class ImageViewer(Node):
+class DisparityViewer(Node):
     def __init__(self):
         super().__init__("stereo_image_viewer")
 
@@ -109,7 +109,7 @@ class ImageViewer(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    viewer = ImageViewer()
+    viewer = DisparityViewer()
     rclpy.spin(viewer)
     viewer.destroy_node()
     rclpy.shutdown()
