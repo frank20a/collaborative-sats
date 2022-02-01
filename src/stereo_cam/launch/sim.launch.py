@@ -49,5 +49,12 @@ def generate_launch_description():
                 '-topic', 'stereo_cam_desc', 
                 '-entity', 'stereo'
                 ]
+        ),
+
+        # Spawn a disparity publisher
+        Node(
+            package='stereo_cam',
+            executable='disparity_publisher',
+            name='disparity_publisher'
         )
     ])

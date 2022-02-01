@@ -25,7 +25,7 @@ stereo.setUniquenessRatio(15)
 stereo.setSpeckleRange(3)
 stereo.setMinDisparity(minDisparity)
 
-class DisparityViewer(Node):
+class DisparityPublisher(Node):
     def __init__(self):
         super().__init__("stereo_image_viewer")
 
@@ -75,7 +75,7 @@ class DisparityViewer(Node):
 
 
         disparity = stereo.compute(self.img_l, self.img_r).astype(np.float32)
-        disparity = (disparity/16.0 - (minDisparity-1))/numDisparities
+        # disparity = (disparity/16.0 - (minDisparity-1))/numDisparities
 
         # ----> Send disparsity image message
         disp_msg = DisparityImage()
@@ -90,7 +90,7 @@ class DisparityViewer(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    viewer = DisparityViewer()
+    viewer = DisparityPublisher()
     rclpy.spin(viewer)
     viewer.destroy_node()
     rclpy.shutdown()
