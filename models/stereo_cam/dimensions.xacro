@@ -4,7 +4,7 @@
     <!-- Body --> 
     <xacro:property name="body_x" value="0.07"/>
     <xacro:property name="body_y" value="${body_x}"/>
-    <xacro:property name="body_z" value="1.1"/>
+    <xacro:property name="body_z" value="1"/>
     <xacro:property name="body_dim" value="${body_x} ${body_y} ${body_z}"/>
 
     <!-- Arm -->
@@ -16,8 +16,7 @@
     <xacro:property name="arm_vis2_dim" value="${arm_thickness} ${arm_span} ${arm_thickness}"/>
 
     <!-- Cameras -->
-    <!-- <xacro:property name="ipd" value="${64.0 * 0.01}"/> -->
-    <xacro:property name="ipd" value="0.15"/>
+    <xacro:property name="ipd" value="0.065"/>
     <xacro:property name="cam_size" value="0.05"/>
 
 </robot>

@@ -82,7 +82,7 @@
     </link>
 
     <joint name="camera_r_fix" type="fixed">
-        <origin xyz = "0 ${ipd/2} 0"/>
+        <origin xyz = "${arm_thickness/2} -${ipd/2} 0"/>
         <parent link = "arm"/>
         <child link = "camera_r_link"/>
     </joint>
@@ -99,8 +99,18 @@
     </link>
 
     <joint name="camera_l_fix" type="fixed">
-        <origin xyz = "0 -${ipd/2} 0"/>
+        <origin xyz = "${arm_thickness/2} ${ipd/2} 0"/>
         <parent link = "arm"/>
         <child link = "camera_l_link"/>
     </joint>
+
+    <!-- Camera Midpoint (PCL Reference) -->
+    <link name="camera_midpoint"></link>
+
+    <joint name="camera_midpoint_fix" type="fixed">
+        <origin xyz = "${arm_thickness/2} 0 0"/>
+        <parent link = "arm"/>
+        <child link = "camera_midpoint"/>
+    </joint>
+
 </robot>
