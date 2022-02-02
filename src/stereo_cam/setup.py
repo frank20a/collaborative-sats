@@ -32,7 +32,7 @@ setup(
             'stereo_viewer = ' + package_name + '.stereo_viewer:main',
             'disparity_viewer = ' + package_name + '.disparity_viewer:main',
             'disparity_publisher = ' + package_name + '.disparity_publisher:main',
-            'pcl_publisher = ' + package_name + '.pcl_publisher:main'
+            'pcd_publisher = ' + package_name + '.pcd_publisher:main'
         ],
     },
 )

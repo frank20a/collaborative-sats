@@ -76,16 +76,21 @@ class DisparityPublisher(Node):
 
         disparity = stereo.compute(self.img_l, self.img_r).astype(np.float32)
         # disparity = (disparity/16.0 - (minDisparity-1))/numDisparities
+        # disparity = disparity - 16.0 * (minDisparity - 1)
 
         # ----> Send disparsity image message
-        disp_msg = DisparityImage()
-        disp_msg.max_disparity = 1.0
-        disp_msg.min_disparity = 0.0
-        disp_msg.delta_d = 1.0 / numDisparities
-        disp_msg.image = bridge.cv2_to_imgmsg(disparity)
-        disp_msg.t = 0.065
-        disp_msg.f = (720 / 2) / np.tan(1.04699999 / 2)
-        self.publisher_disp.publish(disp_msg)
+        self.publisher_disp.publish(
+            DisparityImage(
+                max_disparity = np.float64(numDisparities - 16.0 * (minDisparity - 1)),
+                min_disparity = np.float64(minDisparity),
+                delta_d = 1.0 / numDisparities,
+                image = bridge.cv2_to_imgmsg(disparity),
+                t = 0.065,
+                f = (720 / 2) / np.tan(1.04699999 / 2)
+            )
+        )
+
+        # print(np.max(disparity), np.min(disparity))
 
 
 def main(args=None):

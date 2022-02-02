@@ -55,9 +55,22 @@ def generate_launch_description():
         ),
 
         # Spawn a disparity publisher
-        # Node(
-        #     package='stereo_cam',
-        #     executable='disparity_publisher',
-        #     name='disparity_publisher'
-        # )
+        Node(
+            package='stereo_cam',
+            executable='disparity_publisher',
+            name='disparity_publisher',
+            parameters = [{
+                'use_sim_time': True
+            }]
+        ),
+
+        # Spawn a PointCloud2 publisher
+        Node(
+            package='stereo_cam',
+            executable='pcd_publisher',
+            name='pointcloud_publisher',
+            parameters = [{
+                'use_sim_time': True
+            }]
+        )
     ])
