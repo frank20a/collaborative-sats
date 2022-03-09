@@ -1,24 +1,23 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>stereo_cam</name>
-  <version>1.0.0</version>
-  <description>Fetch stereoscopic data from sensors and process them</description>
+  <name>pose_estimation</name>
+  <version>0.0.1</version>
+  <description>A package dedicated to estimating the pose of a target in various scenarios</description>
   <maintainer email="frank.fourlas@gmail.com">Frank Fourlas</maintainer>
-  <license>Apache 2.0</license>
+  <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
-  <exec_depend>numpy</exec_depend>
-  <exec_depend>opencv-python</exec_depend>
-  <exec_depend>open3d</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>opencv-contrib-python</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
+    <gazebo_ros gazebo_media_path="${prefix}"/>
   </export>
 </package>

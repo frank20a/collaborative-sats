@@ -1,0 +1,55 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stereo">
+    <xacro:include filename="dimensions.xacro"/>
+    <xacro:include filename="macros.xacro"/>
+
+    <!-- World -->
+    <link name="world"></link>
+
+    <!-- Body -->
+    <link name="body">
+        <collision name="body_collision">
+            <geometry>
+                <box size="${cube_dim}"/>
+            </geometry>
+        </collision>
+
+        <visual name="body_visual_cube">
+            <geometry>
+                <box size="${cube_dim}"/>
+            </geometry>
+        </visual>
+
+        <visual name="body_visual_arm">
+            <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+            <geometry>
+                <cylinder radius="${panel_z/2}" length="${arm*2 + cube_y*U}"/>
+            </geometry>
+        </visual>
+
+        <visual name="body_visual_panel_right">
+            <origin xyz="0 ${(cube_y*U + panel_y)/2 + arm} 0" rpy="0 1.0472 0"/>
+            <geometry>
+                <box size="${panel_dim}"/>
+            </geometry>
+        </visual>
+
+        <visual name="body_visual_panel_left">
+            <origin xyz="0 ${-(cube_y*U + panel_y)/2 - arm} 0" rpy="0 1.0472 0"/>
+            <geometry>
+                <box size="${panel_dim}"/>
+            </geometry>
+        </visual>
+
+        <xacro:inertial_box mass="1.25" x="${cube_x*U}" y="${cube_y*U}" z="${cube_z*U}">
+            <origin xyz="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="body_fix" type="fixed">
+        <origin xyz="0 0 ${cube_z * U + 0.05}"/>
+        <parent link="world"/>
+        <child link="body"/>
+    </joint>
+
+</robot>
