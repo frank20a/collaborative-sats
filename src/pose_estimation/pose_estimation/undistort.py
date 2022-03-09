@@ -9,8 +9,6 @@ import cv2 as cv
 import json, os
 import numpy as np
 
-bridge = CvBridge()
-
 
 def get_camera_calibration():
     with open(os.path.join(get_package_share_directory('pose_estimation'), 'calibration.json'), 'r') as f:
@@ -30,6 +28,7 @@ class UndistortedPublisher(Node):
     def __init__(self):
         super().__init__("camera_calibrator")
 
+        self.bridge = CvBridge()
         self.declare_parameter('verbose', 0)
         
         
@@ -51,8 +50,11 @@ class UndistortedPublisher(Node):
             cv.imshow('distorted', img)
             cv.imshow('undistorted', dst)
             cv.waitKey(1)
-
-        self.publisher_disp.publish(bridge.cv2_to_imgmsg(dst))
+        
+        img_msg = self.bridge.cv2_to_imgmsg(dst)
+        img_msg.header.stamp = self.get_clock().now().to_msg()
+        img_msg.header.frame_id = 'camera'
+        self.publisher_disp.publish(img_msg)
 
 
 def main(args=None):

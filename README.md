@@ -9,11 +9,14 @@ The `stereo_cam` package contains scripts and simulation environments for extrac
 
 ### Pose Estimation
 
-The `pose_estimation` package contains usefull methods for estimating the pose of the target. Starting from the easiest method with prior knowledge about the target considered, I move towards a method involving more and more autonomy. 
+The `pose_estimation` package contains usefull methods for estimating the pose of the target. Starting from the easiest method with prior knowledge about the target considered, I move towards a method involving more and more autonomy.
 
 #### ArUco markers
 
-Software tracks ArUco markers on target using a calibrated camera and extracts pose. 
+Software tracks ArUco markers on target using a calibrated camera and extracts pose. To test the usage you can use the `aruco.launch.py` launch file and test the pose estimation from the computers built-in camera.
+```console
+ros2 launch pose_estimation aruco.launch.py
+```
 
 ## Build
 ```console

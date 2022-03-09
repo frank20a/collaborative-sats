@@ -18,10 +18,13 @@ class ArucoPoseEstimator(Node):
         self.bridge = CvBridge()
         self.pose_br = TransformBroadcaster(self)
 
+        # Declare parameters
+        self.declare_parameter('verbose', 1)
+        self.declare_parameter('marker_size', 0.12)
+
         # Setup ArUco recognition
         self.dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_5X5_50)
         self.params = cv.aruco.DetectorParameters_create()
-        self.real_dim = 0.04
 
         # Get calibration parameters
         self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
@@ -30,6 +33,12 @@ class ArucoPoseEstimator(Node):
             Image,
             '/undistorted',
             self.callback,
+            QoSPresetProfiles.get_from_short_key('sensor_data')
+        )
+
+        self.publisher_disp = self.create_publisher(
+            Image, 
+            '/aruco_verbose', 
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
@@ -46,7 +55,12 @@ class ArucoPoseEstimator(Node):
 
             cv.aruco.drawDetectedMarkers(img, corners, ids)
 
-            rvecs, tvecs, _ = cv.aruco.estimatePoseSingleMarkers(corners, self.real_dim, self.mtx, self.dist)
+            rvecs, tvecs, _ = cv.aruco.estimatePoseSingleMarkers(
+                corners, 
+                self.get_parameter('marker_size').get_parameter_value().double_value, 
+                self.mtx, 
+                self.dist
+            )
             for rvec, tvec, id in zip(rvecs, tvecs, ids):
                 # Source: https://automaticaddison.com/how-to-publish-tf-between-an-aruco-marker-and-a-camera/
 
@@ -75,12 +89,25 @@ class ArucoPoseEstimator(Node):
         
                 # Send the transform
                 self.pose_br.sendTransform(t)
+                if self.get_parameter('verbose').get_parameter_value().integer_value > 2:
+                    print("Translation:")
+                    print(t.transform.translation)
+                    print("Rotation:")
+                    print(t.transform.rotation)
+                    print('\n\n')
 
-                cv.aruco.drawAxis(img, self.mtx, self.dist, rvec, tvec, 0.05)
+                cv.aruco.drawAxis(img, self.mtx, self.dist, rvec, tvec, 0.075)
 
+        if self.get_parameter('verbose').get_parameter_value().integer_value > 0:
+            img_msg = self.bridge.cv2_to_imgmsg(img)
+            img_msg.header.stamp = self.get_clock().now().to_msg()
+            img_msg.header.frame_id = 'camera'
 
-        cv.imshow('Aruco Pose Estimation', img)
-        cv.waitKey(1)
+            self.publisher_disp.publish(img_msg)
+
+        if self.get_parameter('verbose').get_parameter_value().integer_value > 1:
+            cv.imshow('Aruco Pose Estimation', img)
+            cv.waitKey(1)
 
 
 def main(args=None):

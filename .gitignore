@@ -1,7 +1,6 @@
-build/
-install/
-log/
-src/stereo_cam/notes.txt
-src/stereo_cam/launch/launch files notes.txt
-*/__pycache__
-disparity_example.py
+/build/
+/install/
+/log/
+notes.txt
+launch files notes.txt
+__pycache__/
