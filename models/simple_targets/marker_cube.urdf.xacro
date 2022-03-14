@@ -1,0 +1,35 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="marker_cube">
+    <xacro:include filename="dimensions.xacro"/>
+    <xacro:include filename="macros.xacro"/>
+
+    <!-- World -->
+    <link name="world"></link>
+
+    <!-- Body -->
+    <link name="body">
+        <collision name="body_collision">
+            <geometry>
+                <box size="${cube_dim}"/>
+            </geometry>
+        </collision>
+
+        <visual name="body_visual_cube">
+            <geometry>
+                <mesh filename="/home/frank20a/dev-ws/models/media/meshes/marker_cube_test.dae" scale="10 10 10"/>
+            </geometry>
+        </visual>
+
+        <xacro:inertial_box mass="1.25" x="${cube_x*U}" y="${cube_y*U}" z="${cube_z*U}">
+            <origin xyz="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="body_fix" type="fixed">
+        <origin xyz="0 0 ${cube_z * U + 0.05}"/>
+        <parent link="world"/>
+        <child link="body"/>
+    </joint>
+
+    <xacro:include filename="gazebo.xacro"/>
+</robot>

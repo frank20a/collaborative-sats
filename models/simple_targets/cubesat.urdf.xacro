@@ -1,5 +1,5 @@
 <?xml version='1.0'?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stereo">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cubesat">
     <xacro:include filename="dimensions.xacro"/>
     <xacro:include filename="macros.xacro"/>
 

@@ -9,5 +9,10 @@
         </plugin>
     </gazebo>
 
+    <!-- Body Material -->
+    <!-- <gazebo reference="body">
+        <material>MarkersTexture</material>
+    </gazebo> -->
+
     
 </robot>

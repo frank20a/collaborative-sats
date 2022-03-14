@@ -1,0 +1,17 @@
+material MarkersTexture
+{
+  receive_shadows on
+
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        // colour_op_ex source1 src_manual src_current 1 0 0
+        texture seamless_texture.png
+        scale 0.5 0.5
+      }
+    }
+  }
+}

@@ -7,7 +7,7 @@ import xacro, os
 
 def generate_launch_description():
 
-    raw_robot = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/cubesat.urdf.xacro').toxml()
+    raw_robot = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
 
     
     return LaunchDescription([
@@ -31,17 +31,17 @@ def generate_launch_description():
             ]
         ),
 
-        # Open RViz
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            parameters = [{
-                'use_sim_time': True
-            }],
-            # arguments=[
-            #     '-d', os.path.join(get_package_share_directory('stereo_cam'), 'rviz_config/stereo_cam.rviz')
-            # ]
-        ),
+        # # Open RViz
+        # Node(
+        #     package='rviz2',
+        #     executable='rviz2',
+        #     parameters = [{
+        #         'use_sim_time': True
+        #     }],
+        #     # arguments=[
+        #     #     '-d', os.path.join(get_package_share_directory('stereo_cam'), 'rviz_config/stereo_cam.rviz')
+        #     # ]
+        # ),
 
         # Spawn robot into Gazebo
         Node(
@@ -50,7 +50,7 @@ def generate_launch_description():
             name='spawner',
             arguments=[
                 '-topic', 'easy_cube_desc', 
-                '-entity', 'stereo'
+                '-entity', 'marker_cube'
                 ]
         ),
 
