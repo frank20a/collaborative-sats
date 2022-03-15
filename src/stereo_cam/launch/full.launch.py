@@ -9,11 +9,13 @@ def generate_launch_description():
 
     raw_robot = xacro.process_file('/home/frank20a/dev-ws/models/stereo_cam/stereo_cam.urdf.xacro').toxml()
 
+    world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'test1.world')
     
     return LaunchDescription([
         # Open Gazebo
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
+            launch_arguments={'world': world}.items()
         ),
 
         # Publish robot to robot_state_publisher
