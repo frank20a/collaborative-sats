@@ -8,11 +8,9 @@
             <joint_name>body_fix</joint_name>
         </plugin>
     </gazebo>
-
-    <!-- Body Material -->
-    <!-- <gazebo reference="body">
-        <material>MarkersTexture</material>
-    </gazebo> -->
-
     
+    <!-- Gravity -->
+    <gazebo reference="body">
+        <gravity>0</gravity>
+    </gazebo>    
 </robot>

@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Body --> 
+    <xacro:property name="body_x" value="0.25"/>
+    <xacro:property name="body_y" value="${body_x}"/>
+    <xacro:property name="body_z" value="0.05"/>
+    <xacro:property name="body_dim" value="${body_x} ${body_y} ${body_z}"/>
+
+    <!-- Legs -->
+    <xacro:property name="leg_r" value="0.01"/>
+    <xacro:property name="leg_len" value="0.05"/>
+
+    <!-- Body Collision -->
+    <xacro:property name="body_col_dim" value="${body_x} ${body_y} ${body_z + leg_len}"/>
+    
+    <!-- Head -->
+    <xacro:property name="head_r" value="0.07"/>
+    <xacro:property name="head_len" value="0.1"/>
+
+    <!-- Cameras -->
+    <xacro:property name="cam_size" value="0.025"/>
+
+</robot>

@@ -1,0 +1,92 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="chaser">
+    <xacro:include filename="dimensions.xacro"/>
+    <xacro:include filename="macros.xacro"/>
+    <xacro:include filename="gazebo.xacro"/>
+
+    <!-- World -->
+    <link name="world"></link>
+
+    <!-- Body -->
+    <link name="body">
+        <collision name="body_col">
+            <geometry><box size="${body_x} ${body_y} ${body_z + leg_len}"/>
+            </geometry>
+        </collision>
+
+        <collision name="head_col">
+            <origin xyz="0 0 ${body_z/2 + head_len/2}"/>
+            <geometry>
+                <cylinder radius="${head_r}" length="${head_len}"/>
+            </geometry>
+        </collision>
+
+        <visual name="body_vis">
+            <geometry>
+                <box size="${body_dim}"/>
+            </geometry>
+        </visual>
+
+        <visual name="leg_1">
+            <origin xyz="${body_x/2 - leg_r} ${body_y/2 - leg_r} ${-body_z}"/>
+            <geometry>
+                <cylinder radius="${leg_r}" length="${leg_len}"/>
+            </geometry>
+        </visual>
+
+        <visual name="leg_2">
+            <origin xyz="${-body_x/2 + leg_r} ${body_y/2 - leg_r} ${-body_z}"/>
+            <geometry>
+                <cylinder radius="${leg_r}" length="${leg_len}"/>
+            </geometry>
+        </visual>
+
+        <visual name="leg_3">
+            <origin xyz="${body_x/2 - leg_r} ${-body_y/2 + leg_r} ${-body_z}"/>
+            <geometry>
+                <cylinder radius="${leg_r}" length="${leg_len}"/>
+            </geometry>
+        </visual>
+
+        <visual name="leg_4">
+            <origin xyz="${-body_x/2 + leg_r} ${-body_y/2 + leg_r} ${-body_z}"/>
+            <geometry>
+                <cylinder radius="${leg_r}" length="${leg_len}"/>
+            </geometry>
+        </visual>
+
+        <visual name="head_vis">
+            <origin xyz="0 0 ${body_z/2 + head_len/2}"/>
+            <geometry>
+                <cylinder radius="${head_r}" length="${head_len}"/>
+            </geometry>
+        </visual>
+
+        <xacro:inertial_box mass="0.25" x="${body_x}" y="${body_y}" z="${body_z}">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="body_fix" type="fixed">
+        <origin xyz="0 0 0.75"/>
+        <parent link="world"/>
+        <child link="body"/>
+    </joint>
+
+    <!-- Camera L -->
+    <link name="camera">
+        <visual>
+            <origin xyz="${cam_size/2} 0 0"/>
+            <geometry>
+                <box size="${cam_size} ${cam_size} ${cam_size}"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="camera_fix" type="fixed">
+        <origin xyz = "${head_r} 0 ${(head_len + body_z) / 2}"/>
+        <parent link = "body"/>
+        <child link = "camera"/>
+    </joint>
+    
+</robot>
