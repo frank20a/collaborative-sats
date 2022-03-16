@@ -1,5 +1,14 @@
 <sdf version='1.7'>
   <world name='default'>
+
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <!-- <ros>
+          <namespace>/chaser</namespace>
+          <argument>model_states:=model_states_demo</argument>
+      </ros> -->
+      <update_rate>1.0</update_rate>
+    </plugin>
+
     <model name='ground_plane'>
       <static>1</static>
       <link name='link'>
@@ -48,7 +57,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <gravity>0 0 -9.8</gravity>
+    <gravity>0 0 -9.81</gravity>
     <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     <atmosphere type='adiabatic'/>
     <physics type='ode'>

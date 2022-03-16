@@ -18,23 +18,8 @@ def generate_launch_description():
         # Open Gazebo
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-            launch_arguments={'world': world}.items()
+            launch_arguments={'world': world, 'use_sim_time': True}.items()
         ),
-
-        # Publish target to robot_state_publisher
-        Node(
-            package = 'robot_state_publisher',
-            executable =  'robot_state_publisher',
-            name = 'state_publisher',
-            output = 'screen',
-            parameters = [{
-                'robot_description': raw_target,
-                'use_sim_time': True    # Use simulation ()
-                }],
-            remappings=[
-                ('robot_description', 'target_cube_desc')
-            ]
-        ), 
         
         # Publish chaser to robot_state_publisher
         Node(
@@ -63,25 +48,14 @@ def generate_launch_description():
             ]
         ),
 
-        # # Spawn target into Gazebo
-        # Node(
-        #     package='gazebo_ros',
-        #     executable='spawn_entity.py',
-        #     name='spawner',
-        #     arguments=[
-        #         '-topic', '/target_cube_desc', 
-        #         '-entity', 'marker_cube',
-        #         '-x', '1',
-        #         '-y', '0',
-        #         '-z', '1'
-        #     ]
-        # ),
-        
         # Spawn chaser into Gazebo
         Node(
             package='gazebo_ros',
             executable='spawn_entity.py',
             name='spawner',
+            parameters = [{
+                'use_sim_time': True
+            }],
             arguments=[
                 '-topic', '/chaser_desc', 
                 '-entity', 'chaser'

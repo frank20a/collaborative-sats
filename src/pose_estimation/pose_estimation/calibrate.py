@@ -62,7 +62,7 @@ def calibrateCameraLive(num_images: int = 15, cb: tuple = (8, 5)):
     return mtx, dist, rvecs, tvecs, new_mtx, roi
 
 
-def calibrateCameraFiles(cb: tuple = (8, 5)):
+def calibrateCameraFiles(cb: tuple = (8, 5), folder = os.getcwd()):
      # termination criteria
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -75,7 +75,7 @@ def calibrateCameraFiles(cb: tuple = (8, 5)):
     imgpoints = [] # 2d points in image plane.
 
     
-    images = glob.glob(os.path.join(os.getcwd(), '*.jpg'))
+    images = glob.glob(os.path.join(folder, '*.jpg'))
 
     for fname in images:
         img = cv.imread(fname)
@@ -125,14 +125,30 @@ class Calibrator(Node):
         self.declare_parameter('num-images', 15)
         self.declare_parameter('chessboard-h', 8)
         self.declare_parameter('chessboard-w', 5)
+        self.declare_parameter('type', 'live')
+        self.declare_parameter('folder', '/home/frank20a/calibration_imgs')
 
-        calibrateCameraLive(
-            self.get_parameter('num-images').get_parameter_value().integer_value,
-            (
-                self.get_parameter('chessboard-h').get_parameter_value().integer_value,
-                self.get_parameter('chessboard-w').get_parameter_value().integer_value
+
+        if self.get_parameter('type').get_parameter_value().string_value == 'live':
+            calibrateCameraLive(
+                self.get_parameter('num-images').get_parameter_value().integer_value,
+                (
+                    self.get_parameter('chessboard-h').get_parameter_value().integer_value,
+                    self.get_parameter('chessboard-w').get_parameter_value().integer_value
+                )
             )
-        )
+
+        elif self.get_parameter('type').get_parameter_value().string_value == 'file':
+            calibrateCameraFiles(
+                (
+                    self.get_parameter('chessboard-h').get_parameter_value().integer_value,
+                    self.get_parameter('chessboard-w').get_parameter_value().integer_value
+                ),
+                self.get_parameter('folder').get_parameter_value().string_value
+            )
+
+        else:
+            print('Invalid parameter "type"')
 
         self.destroy_node()
         
