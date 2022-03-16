@@ -63,19 +63,19 @@ def generate_launch_description():
             ]
         ),
 
-        # Spawn target into Gazebo
-        Node(
-            package='gazebo_ros',
-            executable='spawn_entity.py',
-            name='spawner',
-            arguments=[
-                '-topic', '/target_cube_desc', 
-                '-entity', 'marker_cube',
-                '-x', '1',
-                '-y', '0',
-                '-z', '1'
-            ]
-        ),
+        # # Spawn target into Gazebo
+        # Node(
+        #     package='gazebo_ros',
+        #     executable='spawn_entity.py',
+        #     name='spawner',
+        #     arguments=[
+        #         '-topic', '/target_cube_desc', 
+        #         '-entity', 'marker_cube',
+        #         '-x', '1',
+        #         '-y', '0',
+        #         '-z', '1'
+        #     ]
+        # ),
         
         # Spawn chaser into Gazebo
         Node(
@@ -87,11 +87,4 @@ def generate_launch_description():
                 '-entity', 'chaser'
             ]
         ),
-
-        # Spawn a disparity publisher
-        # Node(
-        #     package='stereo_cam',
-        #     executable='disparity_publisher',
-        #     name='disparity_publisher'
-        # )
     ])
