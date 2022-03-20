@@ -118,7 +118,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/frank20a/dev-ws/models/media/meshes/marker_box.dae</uri>
+              <uri>/home/frank20a/dev-ws/models/simple_targets/ship1/marker_box.dae</uri>
             </mesh>
           </geometry>
         </visual>

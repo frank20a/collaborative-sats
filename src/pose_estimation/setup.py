@@ -31,6 +31,7 @@ setup(
             'calibrate = ' + package_name + '.calibrate:main',
             'undistort = ' + package_name + '.undistort:main',
             'aruco_pose_estimation = ' + package_name + '.aruco:main',
+            'calibrate_sim = ' + package_name + '.calibrate_sim:main'
         ],
     },
 )

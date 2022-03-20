@@ -7,7 +7,7 @@ import xacro, os
 
 def generate_launch_description():
 
-    raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
+    # raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
     raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
 
     world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
@@ -18,7 +18,7 @@ def generate_launch_description():
         # Open Gazebo
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-            launch_arguments={'world': world, 'use_sim_time': True}.items()
+            launch_arguments={'world': world}.items()
         ),
         
         # Publish chaser to robot_state_publisher

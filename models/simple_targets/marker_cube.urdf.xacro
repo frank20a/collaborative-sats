@@ -14,7 +14,7 @@
 
         <visual name="body_visual_cube">
             <geometry>
-                <mesh filename="/home/frank20a/dev-ws/models/media/meshes/marker_box.dae"/>
+                <mesh filename="/home/frank20a/dev-ws/models/simple_targets/ship1/marker_box.dae"/>
             </geometry>
         </visual>
 
