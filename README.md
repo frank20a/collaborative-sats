@@ -1,5 +1,5 @@
 # collaborative-sats
-Part of my thesis. My ROS2 workspace for simulations.
+Part of my thesis. My ROS2 workspace for simulations. I'm using the latest Galactic version of ROS2.
 
 ## Packages
 
@@ -29,3 +29,19 @@ source ./install/setup.bash
 ros2 launch <package_name> <launch_file.py>
 ros2 run <package_name> <node.py>
 ```
+
+## Problem Solving
+Here I document most of the problems I faced and how I solved them.
+
+### Changing the pose of an enitity in Gazebo
+See relevant document [here](pose_estimation/pose_estimation/README.md)
+Sources (Don't count on them indicidually... they are for different ROS versions):
+- (ROS Communication)[http://gazebosim.org/tutorials/?tut=ros_comm]
+- (ROS Integration overview)[http://gazebosim.org/tutorials?tut=ros_overview]
+- (ROS2 Integration overview)[http://gazebosim.org/tutorials?tut=ros2_overview]
+- (Using gazebo_ros plugins in ROS2)[https://answers.ros.org/question/356936/how-to-use-gazebo-plugins-found-in-gazebo_ros-ros2-foxy-gazebo11/]
+- (Using gazebo_ros API (get the `get_entity_state` service to show up) in ROS2)[https://answers.ros.org/question/360161/ros2-dashing-service-get_entity_state-is-missing/]
+- (Creating a service client in ROS2)[https://docs.ros.org/en/foxy/Tutorials/Writing-A-Simple-Py-Service-And-Client.html]
+- (List of gazebo_msgs)[https://index.ros.org/p/gazebo_msgs/#galactic-assets]
+  - (SetEntityState service)[https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/srv/SetEntityState.srv]
+  - (EntityState message)[https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/msg/EntityState.msg]
