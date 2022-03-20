@@ -69,3 +69,7 @@ Sources (Don't count on them indicidually... they are for different ROS versions
   - [SetEntityState service](https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/srv/SetEntityState.srv)
   - [EntityState message](https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/msg/EntityState.msg)
 - [Send geometry (and other types) of messages from Python](https://www.programcreek.com/python/example/70251/geometry_msgs.msg.Twist)
+
+### Time in ROS2 nodes
+
+You can get the Node clock with `clock = my_node.get_clock()` and from there get the current time `time = clock.now()` and transform it to a message (e.g. for use in a header) with `time_msg = time.to_msg()`.
