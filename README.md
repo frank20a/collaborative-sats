@@ -19,6 +19,8 @@ ros2 launch pose_estimation aruco.launch.py
 ```
 
 ## Build
+
+Run from the workspace directory
 ```console
 colcon build --symlink-install
 ```
@@ -33,8 +35,29 @@ ros2 run <package_name> <node.py>
 ## Problem Solving
 Here I document most of the problems I faced and how I solved them.
 
+### Spawn model with ROS2 Gazebo
+
+See relevant documentation [here](https://answers.ros.org/question/314607/spawn-model-with-ros2-gazebo/)
+
+### Publishing complicated messages from Python
+
+Publishing messages in a topic from a Python node is not as simple as using the commandline and dictionary-like strings [e.g.](src/pose_estimation/pose_estimation/README.md#Call-the-service-using-the-appropriate-message). We need to import the appropriate messages and service types, then set the message to a new msg object and finally change the messages primitive values. 
+- [Example 1](https://www.programcreek.com/python/example/70251/geometry_msgs.msg.Twist) (Outsourced)
+- [Example 2](src/pose_estimation/pose_estimation/README.md#from-a-python-node) (Self-written)
+
+### Robot Description
+
+- URDF
+  - [Links](http://wiki.ros.org/urdf/XML/link)
+  - [Joints](http://wiki.ros.org/urdf/XML/joint)
+- [xacro](https://www.youtube.com/watch?v=CwdbsvcpOHM&t=1090s)
+- [tf](https://www.youtube.com/watch?v=QyvHhY4Y_Y8&t=2s) System
+- [Gazebo & state publishers](https://www.youtube.com/watch?v=laWn7_cj434) | [More Gazebo](https://automaticaddison.com/how-to-simulate-a-robot-using-gazebo-and-ros-2/) | [Even More](https://medium.com/creating-a-gazebo-simulation-with-ros2-for-your/introduction-8daf6efa12f4)
+
 ### Changing the pose of an enitity in Gazebo
+
 See relevant document [here](src/pose_estimation/pose_estimation/README.md)
+
 Sources (Don't count on them indicidually... they are for different ROS versions):
 - [ROS Communication](http://gazebosim.org/tutorials/?tut=ros_comm)
 - [ROS Integration overview](http://gazebosim.org/tutorials?tut=ros_overview)
@@ -45,3 +68,4 @@ Sources (Don't count on them indicidually... they are for different ROS versions
 - [List of gazebo_msgs](https://index.ros.org/p/gazebo_msgs/#galactic-assets)
   - [SetEntityState service](https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/srv/SetEntityState.srv)
   - [EntityState message](https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/msg/EntityState.msg)
+- [Send geometry (and other types) of messages from Python](https://www.programcreek.com/python/example/70251/geometry_msgs.msg.Twist)
