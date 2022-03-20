@@ -14,4 +14,3 @@ Then call the `/set_entity_state` service with the new pose message
 ```bash
 ros2 service call /set_entity_state gazebo_msgs/srv/SetEntityState '{state:{name: marker_cube, pose: { position: { x: 1, y: 0 ,z: 1 }, orientation: {x: 0, y: 0, z: 0, w: 1 } }, twist: { linear: {x: 0.0 , y: 0 ,z: 0 } , angular: { x: 0.0 , y: 0 , z: 0.0 }}, reference_frame: world }}'
 ```
-
