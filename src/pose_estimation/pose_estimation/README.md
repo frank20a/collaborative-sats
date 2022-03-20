@@ -25,7 +25,9 @@ ros2 service call /set_entity_state gazebo_msgs/srv/SetEntityState '{state:{name
 This can be done from a Python node. We need to keep in mind the following messages structure
 - [SetEntityState service](https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/srv/SetEntityState.srv)
 - [EntityState message](https://github.com/ros-simulation/gazebo_ros_pkgs/blob/galactic/gazebo_msgs/msg/EntityState.msg)
+
 And [how to](https://www.programcreek.com/python/example/70251/geometry_msgs.msg.Twist) send such messages
+
 ```py
 import rclpy
 from rclpy.node import Node
