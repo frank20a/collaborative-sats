@@ -67,7 +67,7 @@ class ArucoPoseEstimator(Node):
                 # Create the coordinate transform
                 t = TransformStamped()
                 t.header.stamp = self.get_clock().now().to_msg()
-                t.header.frame_id = 'camera'
+                t.header.frame_id = 'camera_optical'
                 t.child_frame_id = 'marker_' + str(id)
             
                 # Store the translation (i.e. position) information
