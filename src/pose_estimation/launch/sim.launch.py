@@ -68,7 +68,7 @@ def generate_launch_description():
             name='test',
             parameters = [{
                 'use_sim_time': True,
-                'verbose': 1,
+                # 'verbose': 1,
                 'sim': True
             }],
         ),
