@@ -61,4 +61,15 @@ def generate_launch_description():
                 '-entity', 'chaser'
             ]
         ),
+
+        Node(
+            package='pose_estimation',
+            executable='undistort',
+            name='test',
+            parameters = [{
+                'use_sim_time': True,
+                'verbose': 1,
+                'sim': True
+            }],
+        ),
     ])

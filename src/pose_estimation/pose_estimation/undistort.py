@@ -10,8 +10,8 @@ import json, os
 import numpy as np
 
 
-def get_camera_calibration():
-    with open(os.path.join(get_package_share_directory('pose_estimation'), 'calibration.json'), 'r') as f:
+def get_camera_calibration(filename = 'calibration.json'):
+    with open(os.path.join(get_package_share_directory('pose_estimation'), filename), 'r') as f:
         cal = json.load(f)
 
     return np.asarray(cal['mtx']), np.asarray(cal['dist']), np.asarray(cal['new_mtx']), np.asarray(cal['roi'])
@@ -20,7 +20,7 @@ def get_camera_calibration():
 def undistort_crop(img, mtx, dist, new_mtx, roi):       
     dst = cv.undistort(img, mtx, dist, None, new_mtx)
     x, y, w, h = roi
-    # return dst[y:y+h, x:x+w]
+    return dst[y:y+h, x:x+w]
     return dst
 
 
@@ -30,20 +30,37 @@ class UndistortedPublisher(Node):
 
         self.bridge = CvBridge()
         self.declare_parameter('verbose', 0)
-        
+        self.declare_parameter('sim', False)
         
         self.publisher_disp = self.create_publisher(
             Image, 
             '/undistorted', 
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
-        self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
-        self.cap = cv.VideoCapture(0)
-        
-        self.create_timer(1/60, self.callback)
 
-    def callback(self):
+        if self.get_parameter('sim').get_parameter_value().bool_value:
+            self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration('sim_calibration.json')
+            self.create_subscription(
+                Image,
+                '/sim_camera/image_raw',
+                self.sim_callback,
+                QoSPresetProfiles.get_from_short_key('sensor_data')
+            )
+        else:
+            self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
+            self.cap = cv.VideoCapture(0)
+            
+            self.create_timer(1/60, self.normal_callback)
+
+    def normal_callback(self):
         _, img = self.cap.read()
+        self.undistort(img)
+
+    def sim_callback(self, msg):
+        img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        self.undistort(img)
+
+    def undistort(self, img):
         dst = undistort_crop(img, self.mtx, self.dist, self.new_mtx, self.roi)
 
         if self.get_parameter('verbose').get_parameter_value().integer_value > 0:
