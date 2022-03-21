@@ -3,8 +3,10 @@ from rclpy.node import Node
 from gazebo_msgs.srv import SetEntityState
 from gazebo_msgs.msg import EntityState
 from geometry_msgs.msg import Pose, Twist
+from tf_transformations import quaternion_from_euler
 
 from random import random
+from numpy import pi
 
 
 class Tester(Node):
@@ -26,19 +28,28 @@ class Tester(Node):
 
         self.req.state = EntityState()
 
-        self.req.state.name = 'marker_cube'
+        self.req.state.name = 'chessboard'
 
         self.req.state.pose = Pose()
-        self.req.state.pose.position.x = random() * 4 - 2
-        self.req.state.pose.position.y = random() * 4 - 2
-        self.req.state.pose.position.z = random() * 2
+        self.req.state.pose.position.x =  2.0 + 2.0 * random()
+        self.req.state.pose.position.y = -1.0 + (2.0 - (4 - self.req.state.pose.position.x) / 6) * random()
+        self.req.state.pose.position.z =  0.5 + (1.0 - (4 - self.req.state.pose.position.x) / 6) * random()
+
+        q = quaternion_from_euler(
+            -pi/8 + pi/4* random(), 
+            -pi/8 + pi/4* random(), 
+            -pi/8 + pi/4* random() + pi/2
+        )
+        self.req.state.pose.orientation.x = q[0]
+        self.req.state.pose.orientation.y = q[1]
+        self.req.state.pose.orientation.z = q[2]
+        self.req.state.pose.orientation.w = q[3]
 
         self.req.state.twist = Twist()
 
         self.req.state.reference_frame = 'world'
 
-        self.future = self.cli.call_async(self.req)
-
+        self.resp = self.cli.call_async(self.req)
         
         
 def main(args=None):

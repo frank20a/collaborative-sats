@@ -1,10 +1,8 @@
 <sdf version='1.7'>
   <world name='default'>
-
-    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
-      <update_rate>1.0</update_rate>
+    <plugin name='gazebo_ros_state' filename='libgazebo_ros_state.so'>
+      <update_rate>30.0</update_rate>
     </plugin>
-
     <model name='ground_plane'>
       <static>1</static>
       <link name='link'>
@@ -74,35 +72,53 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name="chessboard">
-      <pose>4 0 2 0 0 1.571</pose>
-      <static>true</static>
-      <link name="board">
+    <model name='chessboard'>
+      <pose>4 0 2 0 -0 1.571</pose>
+      <static>0</static>
+      <link name='board'>
+        <gravity>0</gravity>
         <inertial>
-          <mass>1.0</mass>
-          <inertia> 
-            <ixx>0.08383</ixx> 
-            <ixy>0.0</ixy>
-            <ixz>0.0</ixz>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.08383</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
             <iyy>0.166</iyy>
-            <iyz>0.0</iyz>
+            <iyz>0</iyz>
             <izz>0.08383</izz>
           </inertia>
+          <pose>0 0 0 0 -0 0</pose>
         </inertial>
-        <collision name="collision">
+        <collision name='collision'>
           <geometry>
             <box>
-              <size>1 .1 1</size>
+              <size>1 0.1 1</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
         </collision>
-        <visual name="visual">
+        <visual name='visual'>
           <geometry>
             <mesh>
               <uri>/home/frank20a/dev-ws/models/chessboard/chessboard.dae</uri>
             </mesh>
           </geometry>
         </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
       </link>
     </model>
     <light name='light1' type='point'>
@@ -178,25 +194,25 @@
       </spot>
     </light>
     <state world_name='default'>
-      <sim_time>552 177000000</sim_time>
-      <real_time>126 557485362</real_time>
-      <wall_time>1647427712 198493337</wall_time>
-      <iterations>124907</iterations>
-      <model name='ground_plane'>
-        <pose>0 0 0 0 -0 0</pose>
+      <sim_time>714 667000000</sim_time>
+      <real_time>163 488470347</real_time>
+      <wall_time>1647860351 951491152</wall_time>
+      <iterations>162490</iterations>
+      <model name='chessboard'>
+        <pose>4 0 2 0 -0 1.571</pose>
         <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>0 0 0 0 -0 0</pose>
+        <link name='board'>
+          <pose>4 0 2 0 -0 1.571</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='marker_cube'>
-        <pose>1 0 1 0 -0 0</pose>
+      <model name='ground_plane'>
+        <pose>0 0 0 0 -0 0</pose>
         <scale>1 1 1</scale>
-        <link name='body'>
-          <pose>1 0 1 0 -0 0</pose>
+        <link name='link'>
+          <pose>0 0 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -214,13 +230,34 @@
       <light name='light4'>
         <pose>0 -20 20 0 -0 0</pose>
       </light>
+      <light name='user_spot_light_0'>
+        <pose>-2 0.028774 1.5 -3.14159 -1.57059 3.14159</pose>
+      </light>
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-1.96982 -4.86027 4.29154 -0 0.580655 1.01694</pose>
+        <pose>-7.47581 -12.5873 11.5059 -0 0.436654 0.924937</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
+    <light name='user_spot_light_0' type='spot'>
+      <pose>-1.70589 0.028774 1 0 -0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>0 0 -1</direction>
+      <attenuation>
+        <range>20</range>
+        <constant>0.5</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <spot>
+        <inner_angle>0.6</inner_angle>
+        <outer_angle>1</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+    </light>
   </world>
 </sdf>
