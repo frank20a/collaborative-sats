@@ -88,5 +88,16 @@
         <parent link = "body"/>
         <child link = "camera"/>
     </joint>
+
+    <link name="camera_optical"></link>
+    
+    <joint name="camera_optical_joint" type="fixed">
+        <!-- these values have to be these values otherwise the gazebo camera
+            image won't be aligned properly with the frame it is supposedly
+            originating from -->
+        <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+        <parent link="camera"/>
+        <child link="camera_optical"/>
+      </joint>
     
 </robot>
