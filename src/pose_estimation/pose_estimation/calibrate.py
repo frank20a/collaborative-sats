@@ -122,27 +122,27 @@ def get_camera_calibration():
 class Calibrator(Node):
     def __init__(self):
         super().__init__("camera_calibrator")
-        self.declare_parameter('num-images', 15)
-        self.declare_parameter('chessboard-h', 8)
-        self.declare_parameter('chessboard-w', 5)
+        self.declare_parameter('num_images', 15)
+        self.declare_parameter('chessboard_h', 8)
+        self.declare_parameter('chessboard_w', 5)
         self.declare_parameter('type', 'live')
         self.declare_parameter('folder', '/home/frank20a/calibration_imgs')
 
 
         if self.get_parameter('type').get_parameter_value().string_value == 'live':
             calibrateCameraLive(
-                self.get_parameter('num-images').get_parameter_value().integer_value,
+                self.get_parameter('num_images').get_parameter_value().integer_value,
                 (
-                    self.get_parameter('chessboard-h').get_parameter_value().integer_value,
-                    self.get_parameter('chessboard-w').get_parameter_value().integer_value
+                    self.get_parameter('chessboard_h').get_parameter_value().integer_value,
+                    self.get_parameter('chessboard_w').get_parameter_value().integer_value
                 )
             )
 
         elif self.get_parameter('type').get_parameter_value().string_value == 'file':
             calibrateCameraFiles(
                 (
-                    self.get_parameter('chessboard-h').get_parameter_value().integer_value,
-                    self.get_parameter('chessboard-w').get_parameter_value().integer_value
+                    self.get_parameter('chessboard_h').get_parameter_value().integer_value,
+                    self.get_parameter('chessboard_w').get_parameter_value().integer_value
                 ),
                 self.get_parameter('folder').get_parameter_value().string_value
             )
