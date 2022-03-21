@@ -27,7 +27,7 @@ class Calibrator(Node):
         self.flag = False
         self.create_subscription(
             Image,
-            '/camera_raw/image_raw',
+            '/sim_camera/image_raw',
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )

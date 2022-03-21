@@ -59,4 +59,6 @@ def generate_launch_description():
                 'num_images': 20
             }],
         ),
+
+        
     ])

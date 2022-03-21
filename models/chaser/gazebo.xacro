@@ -21,7 +21,7 @@
     
     <!-- Camera -->
     <gazebo reference="camera">
-        <sensor type="camera" name="camera_raw">
+        <sensor type="camera" name="sim_camera">
             <update_rate>60</update_rate>
             <visualize>true</visualize>
 
