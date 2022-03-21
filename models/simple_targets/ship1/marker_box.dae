@@ -41,7 +41,7 @@
   </library_effects>
   <library_images>
     <image id="marker-mat-chess-col_png" name="marker-mat-chess-col_png">
-      <init_from>marker-mat-chess-col.png</init_from>
+      <init_from>marker-mat-chess-border0.png</init_from>
     </image>
   </library_images>
   <library_materials>
