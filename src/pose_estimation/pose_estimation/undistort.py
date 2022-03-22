@@ -58,7 +58,7 @@ class UndistortedPublisher(Node):
 
     def sim_callback(self, msg):
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        self.undistort(img)
+        self.undistort(cv.cvtColor(img, cv.COLOR_RGB2BGR))
 
     def undistort(self, img):
         dst = undistort_crop(img, self.mtx, self.dist, self.new_mtx, self.roi)
