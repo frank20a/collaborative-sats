@@ -26,7 +26,7 @@ def undistort_crop(img, mtx, dist, new_mtx, roi):
 
 class UndistortedPublisher(Node):
     def __init__(self):
-        super().__init__("camera_calibrator")
+        super().__init__("undistorter")
 
         self.bridge = CvBridge()
         self.declare_parameter('verbose', 0)
@@ -39,6 +39,7 @@ class UndistortedPublisher(Node):
         )
 
         if self.get_parameter('sim').get_parameter_value().bool_value:
+            self.get_logger().info("Starting to undistort from sim")
             self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration('sim_calibration.json')
             self.create_subscription(
                 Image,
@@ -47,16 +48,19 @@ class UndistortedPublisher(Node):
                 QoSPresetProfiles.get_from_short_key('sensor_data')
             )
         else:
+            self.get_logger().info("Starting to undistort from computer camera")
             self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
             self.cap = cv.VideoCapture(0)
             
             self.create_timer(1/60, self.normal_callback)
 
     def normal_callback(self):
+        # self.get_logger().info("Normal Callback")
         _, img = self.cap.read()
         self.undistort(img)
 
     def sim_callback(self, msg):
+        # self.get_logger().info("Simulation Callback")
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         self.undistort(cv.cvtColor(img, cv.COLOR_RGB2BGR))
 
@@ -70,7 +74,7 @@ class UndistortedPublisher(Node):
         
         img_msg = self.bridge.cv2_to_imgmsg(dst)
         img_msg.header.stamp = self.get_clock().now().to_msg()
-        img_msg.header.frame_id = 'camera'
+        img_msg.header.frame_id = 'camera_optical'
         self.publisher_disp.publish(img_msg)
 
 
