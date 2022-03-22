@@ -4,7 +4,7 @@
     <xacro:include filename="macros.xacro"/>
     <xacro:include filename="gazebo.xacro"/>
 
-    <link name="marker_3"></link>
+    <link name="estimated_pose"></link>
 
     <!-- Body -->
     <link name="target_body">
@@ -27,7 +27,7 @@
 
     <joint name="body_fix" type="fixed">
         <origin xyz="0 0 0" rpy="${-pi/2} ${pi} ${-pi/2}"/>
-        <parent link="marker_3"/>
+        <parent link="estimated_pose"/>
         <child link="target_body"/>
     </joint>
 </robot>
