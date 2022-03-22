@@ -230,9 +230,6 @@
       <light name='light4'>
         <pose>0 -20 20 0 -0 0</pose>
       </light>
-      <light name='user_spot_light_0'>
-        <pose>-2 0.028774 1.5 -3.14159 -1.57059 3.14159</pose>
-      </light>
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
@@ -241,23 +238,5 @@
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
-    <light name='user_spot_light_0' type='spot'>
-      <pose>-1.70589 0.028774 1 0 -0 0</pose>
-      <diffuse>0.5 0.5 0.5 1</diffuse>
-      <specular>0.1 0.1 0.1 1</specular>
-      <direction>0 0 -1</direction>
-      <attenuation>
-        <range>20</range>
-        <constant>0.5</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <cast_shadows>0</cast_shadows>
-      <spot>
-        <inner_angle>0.6</inner_angle>
-        <outer_angle>1</outer_angle>
-        <falloff>1</falloff>
-      </spot>
-    </light>
   </world>
 </sdf>

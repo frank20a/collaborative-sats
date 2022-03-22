@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /TF1/Frames1
         - /Aruco Verbose1/Topic1
       Splitter Ratio: 0.5020920634269714
     Tree Height: 291
@@ -46,7 +47,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
+    - Alpha: 0.5
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: true
       Description File: ""
@@ -64,7 +65,7 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        marker_3:
+        estimated_pose:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -130,10 +131,10 @@ Visualization Manager:
           Value: false
         camera_optical:
           Value: true
-        marker_3:
+        estimated_pose:
           Value: true
         target_body:
-          Value: true
+          Value: false
         world:
           Value: true
       Marker Scale: 1
@@ -146,7 +147,7 @@ Visualization Manager:
           body:
             camera:
               camera_optical:
-                marker_3:
+                estimated_pose:
                   target_body:
                     {}
       Update Interval: 0
@@ -251,4 +252,4 @@ Window Geometry:
     collapsed: true
   Width: 1920
   X: 0
-  Y: 1179
+  Y: 27
