@@ -47,8 +47,8 @@
             <camera name="cam">
                 <horizontal_fov>1.04699999</horizontal_fov>
                 <image>
-                    <width>720</width>
-                    <height>480</height>
+                    <width>1280</width>
+                    <height>720</height>
                     <format>R8G8B8</format>
                 </image>
                 <clip>
