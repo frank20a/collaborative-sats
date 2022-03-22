@@ -90,18 +90,23 @@ class ArucoPoseEstimator(Node):
                 # Send the transform
                 self.pose_br.sendTransform(t)
                 if self.get_parameter('verbose').get_parameter_value().integer_value > 2:
-                    print("Translation:")
-                    print(t.transform.translation)
-                    print("Rotation:")
-                    print(t.transform.rotation)
-                    print('\n\n')
+                    # self.get_logger().info(f'\n%s\n%s' % (str(tvec), str(rvec)))
+                    self.get_logger().info('\nTranslation: x={: >6.3f} y={: >6.3f} z={: >6.3f}\n   Rotation: x={: >6.3f} y={: >6.3f} z={: >6.3f} w={: >6.3f}'.format(
+                        t.transform.translation.x,
+                        t.transform.translation.y,
+                        t.transform.translation.z,
+                        t.transform.rotation.x,
+                        t.transform.rotation.y,
+                        t.transform.rotation.z,
+                        t.transform.rotation.w,
+                    ))
 
                 cv.aruco.drawAxis(img, self.mtx, self.dist, rvec, tvec, 0.075)
 
         if self.get_parameter('verbose').get_parameter_value().integer_value > 0:
             img_msg = self.bridge.cv2_to_imgmsg(img)
             img_msg.header.stamp = self.get_clock().now().to_msg()
-            img_msg.header.frame_id = 'camera'
+            img_msg.header.frame_id = 'camera_optical'
 
             self.publisher_disp.publish(img_msg)
 
