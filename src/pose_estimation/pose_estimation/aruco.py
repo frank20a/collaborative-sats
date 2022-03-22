@@ -12,22 +12,54 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
+def tf_msg_from_vecs(rvec, tvec, child_frame, parent_frame = 'camera_optical'):
+    # Source: https://automaticaddison.com/how-to-publish-tf-between-an-aruco-marker-and-a-camera/
+
+    # Create the coordinate transform
+    t = TransformStamped()
+    # t.header.stamp = self.get_clock().now().to_msg()
+    t.header.frame_id = parent_frame
+    t.child_frame_id = child_frame
+
+    # Store the translation (i.e. position) information
+    t.transform.translation.x = tvec[0][0]
+    t.transform.translation.y = tvec[0][1]
+    t.transform.translation.z = tvec[0][2]
+
+    # Store the rotation information
+    rotation_matrix = np.eye(4)
+    rotation_matrix[0:3, 0:3] = cv.Rodrigues(np.array(rvec[0]))[0]
+    r = R.from_matrix(rotation_matrix[0:3, 0:3])
+    quat = r.as_quat()   
+    
+    # Quaternion format     
+    t.transform.rotation.x = quat[0] 
+    t.transform.rotation.y = quat[1] 
+    t.transform.rotation.z = quat[2] 
+    t.transform.rotation.w = quat[3] 
+
+    return t
+
 class ArucoPoseEstimator(Node):
     def __init__(self):
-        super().__init__('aruco_pose_estimator')
+        super().__init__('aruco_estimator')
         self.bridge = CvBridge()
         self.pose_br = TransformBroadcaster(self)
 
         # Declare parameters
         self.declare_parameter('verbose', 1)
         self.declare_parameter('marker_size', 0.12)
+        self.declare_parameter('sim', False)
 
         # Setup ArUco recognition
         self.dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_5X5_50)
         self.params = cv.aruco.DetectorParameters_create()
 
         # Get calibration parameters
-        self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
+        if self.get_parameter('sim').get_parameter_value().bool_value:
+            self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration('sim_calibration.json')
+        else:
+            self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
 
         self.create_subscription(
             Image,
@@ -61,31 +93,10 @@ class ArucoPoseEstimator(Node):
                 self.mtx, 
                 self.dist
             )
-            for rvec, tvec, id in zip(rvecs, tvecs, ids):
-                # Source: https://automaticaddison.com/how-to-publish-tf-between-an-aruco-marker-and-a-camera/
 
-                # Create the coordinate transform
-                t = TransformStamped()
+            for rvec, tvec, id in zip(rvecs, tvecs, ids):
+                t = tf_msg_from_vecs(rvec, tvec, 'marker_' + str(id))
                 t.header.stamp = self.get_clock().now().to_msg()
-                t.header.frame_id = 'camera_optical'
-                t.child_frame_id = 'marker_' + str(id)
-            
-                # Store the translation (i.e. position) information
-                t.transform.translation.x = tvec[0][0]
-                t.transform.translation.y = tvec[0][1]
-                t.transform.translation.z = tvec[0][2]
-        
-                # Store the rotation information
-                rotation_matrix = np.eye(4)
-                rotation_matrix[0:3, 0:3] = cv.Rodrigues(np.array(rvec[0]))[0]
-                r = R.from_matrix(rotation_matrix[0:3, 0:3])
-                quat = r.as_quat()   
-                
-                # Quaternion format     
-                t.transform.rotation.x = quat[0] 
-                t.transform.rotation.y = quat[1] 
-                t.transform.rotation.z = quat[2] 
-                t.transform.rotation.w = quat[3] 
         
                 # Send the transform
                 self.pose_br.sendTransform(t)
