@@ -56,7 +56,6 @@ def generate_launch_description():
             name='calibrator',
             parameters = [{
                 'use_sim_time': True,
-                'num_images': 20
             }],
         ),
 

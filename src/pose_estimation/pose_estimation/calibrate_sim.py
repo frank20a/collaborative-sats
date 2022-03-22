@@ -69,7 +69,7 @@ class Calibrator(Node):
         self.imgpoints = [] # 2d points in image plane.
             
     def calibration_step(self):
-        # self.get_logger().info("Attempting...")
+        self.get_logger().info("Attempting...")
         if not self.flag or self.num_images <= 0: return
 
         gray = cv.cvtColor(self.img, cv.COLOR_BGR2GRAY)
