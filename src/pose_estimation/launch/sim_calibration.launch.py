@@ -52,7 +52,7 @@ def generate_launch_description():
         # Start the calibration process
         Node(
             package='pose_estimation',
-            executable='calibrate_sim',
+            executable='sim_calibrator',
             name='calibrator',
             parameters = [{
                 'use_sim_time': True,

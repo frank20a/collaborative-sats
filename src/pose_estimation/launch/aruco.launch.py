@@ -86,7 +86,7 @@ def generate_launch_description():
         # Open ArUco estimator
         Node(
             package='pose_estimation',
-            executable='aruco_board_pose_estimation',
+            executable='aruco_board_estimator',
             parameters = [{
                 # 'marker_size': 0.1,
                 'verbose': 1,

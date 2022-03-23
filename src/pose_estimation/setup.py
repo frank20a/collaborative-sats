@@ -28,11 +28,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'calibrate = ' + package_name + '.calibrate:main',
+            'calibrator = ' + package_name + '.calibrate:main',
+            'sim_calibrator = ' + package_name + '.calibrate_sim:main',
             'undistort = ' + package_name + '.undistort:main',
-            'aruco_pose_estimation = ' + package_name + '.aruco:main',
-            'aruco_board_pose_estimation = ' + package_name + '.aruco_board:main',
-            'calibrate_sim = ' + package_name + '.calibrate_sim:main',
+            'aruco_estimator = ' + package_name + '.aruco:main',
+            'aruco_board_estimator = ' + package_name + '.aruco_board:main',
         ],
     },
 )

@@ -26,7 +26,7 @@ def undistort_crop(img, mtx, dist, new_mtx, roi):
 
 class UndistortedPublisher(Node):
     def __init__(self):
-        super().__init__("undistorter")
+        super().__init__("undistort")
 
         self.bridge = CvBridge()
         self.declare_parameter('verbose', 0)
