@@ -10,8 +10,7 @@ import cv2 as cv
 from .undistort import get_camera_calibration
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from .objPoints import marker_cube_1
-from .objPoints import m as marker_size
+from .objPoints import models
 from .aruco import tf_msg_from_vecs
 
 class ArucoBoardPoseEstimator(Node):
@@ -23,6 +22,7 @@ class ArucoBoardPoseEstimator(Node):
         # Declare parameters
         self.declare_parameter('verbose', 1)
         self.declare_parameter('sim', False)
+        self.declare_parameter('model', 'marker_cube_1')
 
         # Setup ArUco recognition
         self.dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_5X5_50)
@@ -30,7 +30,7 @@ class ArucoBoardPoseEstimator(Node):
         self.board = cv.aruco.Board_create(
             ids = np.array([[i] for i in range(6)], dtype=np.int32), 
             dictionary = self.dictionary, 
-            objPoints = marker_cube_1
+            objPoints = models[self.get_parameter('model').get_parameter_value().string_value]
         )
 
         # Get calibration parameters
@@ -79,17 +79,17 @@ class ArucoBoardPoseEstimator(Node):
 
                 # Verbosity
                 if self.get_parameter('verbose').get_parameter_value().integer_value > 2:
-                    self.get_logger().info(f'\n%s\n%s' % (str(tvec), str(rvec)))
-                    # self.get_logger().info('\nTranslation: x={: >6.3f} y={: >6.3f} z={: >6.3f}\n   Rotation: x={: >6.3f} y={: >6.3f} z={: >6.3f} w={: >6.3f}'.format(
-                    #     t.transform.translation.x,
-                    #     t.transform.translation.y,
-                    #     t.transform.translation.z,
-                    #     t.transform.rotation.x,
-                    #     t.transform.rotation.y,
-                    #     t.transform.rotation.z,
-                    #     t.transform.rotation.w,
-                    # ))
-                cv.aruco.drawAxis(img, self.mtx, self.dist, rvec, tvec, marker_size)
+                    # self.get_logger().info(f'\n%s\n%s' % (str(tvec), str(rvec)))
+                    self.get_logger().info('\nTranslation: x={: >6.3f} y={: >6.3f} z={: >6.3f}\n   Rotation: x={: >6.3f} y={: >6.3f} z={: >6.3f} w={: >6.3f}'.format(
+                        t.transform.translation.x,
+                        t.transform.translation.y,
+                        t.transform.translation.z,
+                        t.transform.rotation.x,
+                        t.transform.rotation.y,
+                        t.transform.rotation.z,
+                        t.transform.rotation.w,
+                    ))
+                cv.aruco.drawAxis(img, self.mtx, self.dist, rvec, tvec, 0.1)
                 cv.aruco.drawDetectedMarkers(img, corners, ids)
 
                 t = tf_msg_from_vecs(rvec, tvec, 'estimated_pose')
