@@ -18,10 +18,10 @@ Started working on the package `pose_estimation`
 
 Can now detect the pose of ArUco markers from the computer camera using the `aruco` node. This is done after calibrating the camera using the `calibrate` node.
 
-# 2 February 2022 e92d5fc9dce26a04bfe1bde739d6882c1e1a2c68
+## 2 February 2022 e92d5fc9dce26a04bfe1bde739d6882c1e1a2c68
 
 Finished the `pcd_publisher` node that translates a disparity map to a point cloud and publishes it through ROS2 in a PointCloud2 message.
 
-# 31 January 2022 2490e54b173c4dcdda1ea3f285e687537d985afa
+## 31 January 2022 2490e54b173c4dcdda1ea3f285e687537d985afa
 
 Created `disparity_publisher` and `disparity_viewer` nodes that translate images from a stereoscopic camera into a disparity map and then publish or view it as a greyscale image.
