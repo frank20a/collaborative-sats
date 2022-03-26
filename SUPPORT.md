@@ -60,3 +60,15 @@ See relevant documentation [here](/src/stereo_cam/launch/SUPPORT.md).
 ## Creating node for ROS2 with Python3
 
 See relevant documentation [here](/src/stereo_cam/stereo_cam/SUPPORT.md).
+
+## Fix missaligned tf system in camera
+
+Camera reference system in Gazebo is different than the one proposed by OpenCV and so pointclouds, projections and pose estimations performed by cameras in a simulation are missaligned and rotated. To fix that we introduce a link in the same position as the camera link but rotated as described [here](https://answers.ros.org/question/232534/gazebo-camera-frame-is-inconsistent-with-rviz-opencv-convention/). The new camera_link_optical is created as such:
+```xml
+<link name='camera_link_optical'></link>
+<joint name="camera_optical_joint" type="fixed">
+  <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+  <parent link="camera_link"/>
+  <child link="camera_link_optical"/>
+</joint>
+```
