@@ -2,10 +2,9 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="chaser">
     <xacro:include filename="dimensions.xacro"/>
     <xacro:include filename="macros.xacro"/>
-    <xacro:include filename="gazebo.xacro"/>
-
+    
     <!-- World -->
-    <link name="world"></link>
+    <!-- <link name="world"></link> -->
 
     <!-- Body -->
     <link name="body">
@@ -67,11 +66,11 @@
         </xacro:inertial_box>
     </link>
 
-    <joint name="body_fix" type="fixed">
-        <origin xyz="0 0 0.75"/>
+    <!-- <joint name="body_fix" type="fixed">
+        <origin xyz="0 0 0"/>
         <parent link="world"/>
         <child link="body"/>
-    </joint>
+    </joint> -->
 
     <!-- Camera L -->
     <link name="camera">
@@ -98,6 +97,7 @@
         <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
         <parent link="camera"/>
         <child link="camera_optical"/>
-      </joint>
+    </joint>
     
+    <xacro:include filename="gazebo.xacro"/>
 </robot>

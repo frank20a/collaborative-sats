@@ -5,71 +5,135 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
 import xacro, os
 
-def generate_launch_description():
 
-    # raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
-    raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
+raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
+raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
+world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
 
-    world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
-    
 
-    return LaunchDescription([ 
-    
-        # Open Gazebo
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-            launch_arguments={'world': world}.items()
-        ),
-        
-        # Publish chaser to robot_state_publisher
+def robot_spawner(ld: LaunchDescription, robot_count: int):
+    if robot_count > 1: return
+    ns = 'chaser_' + str(robot_count)
+
+    # Publish chaser to robot_state_publisher
+    ld.add_entity(
         Node(
             package = 'robot_state_publisher',
             executable =  'robot_state_publisher',
-            name = 'state_publisher',
-            output = 'screen',
             parameters = [{
                 'robot_description': raw_chaser,
-                'use_sim_time': True    # Use simulation ()
-                }],
-            remappings=[
-                ('robot_description', 'chaser_desc')
-            ]
-        ),
-
-        # Open RViz
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            parameters = [{
-                'use_sim_time': True
+                'use_sim_time': True,
+                'frame_prefix': ns + '/'
             }],
-            arguments=[
-                '-d', os.path.join(get_package_share_directory('pose_estimation'), 'rviz_config/space_sim.rviz')
-            ]
-        ),
+            namespace = ns
+        )
+    )
 
-        # Spawn chaser into Gazebo
+    # Spawn chaser into Gazebo
+    if robot_count == 0:
+        pose = '{position: {x: -1.0, y: 0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z: -0.258819, w: 0.9659258}}'
+    else:
+        pose = '{position: {x: -1.0, y: -0.5, z: 0.85}, orientation: {x: 0.0, y: 0.0, z: 0.258819, w: 0.9659258}}'
+    ld.add_entity(
         Node(
-            package='gazebo_ros',
-            executable='spawn_entity.py',
-            name='spawner',
+            package = 'utils',
+            executable = 'spawn_model',
             parameters = [{
-                'use_sim_time': True
-            }],
-            arguments=[
-                '-topic', '/chaser_desc', 
-                '-entity', 'chaser'
-            ]
-        ),
+                'name': 'chaser',
+                'suffix': str(robot_count),
+                'initial_pose': pose
+            }]
+        )
+    )
 
+    # Open Undistorter
+    ld.add_entity(
         Node(
-            package='pose_estimation',
-            executable='undistort',
-            name='test',
+            package = 'pose_estimation',
+            executable = 'undistort',
             parameters = [{
                 'use_sim_time': True,
                 # 'verbose': 1,
                 'sim': True
             }],
-        ),
-    ])
+            namespace = ns
+        )        
+    )
+
+    # Start Odometry translator
+    ld.add_entity(
+        Node(
+            package = 'utils',
+            executable = 'odometry2tf',
+            parameters = [{
+                'use_sim_time': True
+            }],
+            namespace = ns
+        )
+    )
+    
+    # Open ArUco estimator
+    ld.add_entity(
+        Node(
+            package = 'pose_estimation',
+            executable = 'aruco_board_estimator',
+            parameters = [{
+                'verbose': 1,
+                'use_sim_time': True,
+                'sim': True
+            }],
+            namespace = ns
+        )
+    )
+
+
+def generate_launch_description():
+
+    ld = LaunchDescription()
+
+    # Open Gazebo
+    ld.add_entity(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
+            launch_arguments={'world': world}.items()
+        )
+    )
+
+    # Publish target to robot_state_publisher
+    ld.add_entity(
+        Node(
+            package = 'robot_state_publisher',
+            executable =  'robot_state_publisher',
+            name = 'target_state_publisher',
+            output = 'screen',
+            parameters = [{
+                'robot_description': raw_target,
+                'use_sim_time': True    # Use simulation ()
+                }],
+            remappings=[
+                ('robot_description', 'target_desc'),
+            ]
+        )
+    )
+
+    # Add chasers
+    for i in range(2):
+        robot_spawner(ld, i)
+
+    # Open RViz
+    ld.add_entity(
+        Node(
+            package = 'rviz2',
+            executable = 'rviz2',
+            output = {'both': 'log'},
+            parameters = [{
+                'use_sim_time': True
+            }],
+            arguments = [
+                '-d', os.path.join(get_package_share_directory('pose_estimation'), 'rviz_config/aruco.rviz'),
+            ],
+        )
+    )
+    
+    return ld
+

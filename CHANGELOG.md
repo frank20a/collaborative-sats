@@ -1,5 +1,9 @@
 # Changelog
 
+## 27 March 2022
+
+Managed to launch multiple chasers in the simulation with their own namespaces that seperately estimate the pose of the target.
+
 ## 22 March 2022 553a800ae016fb883fada1b197e245c0243f89e6
 
 Pose estimation works fine with ArUco markers over the target. The position of the markers must be known apriori. This is done using the ArUco Board method implemented in OpenCV.

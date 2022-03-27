@@ -5,9 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /TF1/Frames1
-        - /Aruco Verbose1/Topic1
+        - /Aruco 0 Verbose1/Topic1
+        - /Aruco 1 Verbose1/Topic1
       Splitter Ratio: 0.5020920634269714
-    Tree Height: 291
+    Tree Height: 667
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -57,7 +58,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /target_desc
+        Value: target_desc
       Enabled: true
       Links:
         All Links Enabled: true
@@ -89,7 +90,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /chaser_desc
+        Value: chaser_0/robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -111,12 +112,45 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        world:
+      Name: Chaser 0 Model
+      TF Prefix: chaser_0
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: chaser_1/robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        body:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-      Name: Chaser Model
-      TF Prefix: ""
+          Value: true
+        camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+      Name: Chaser 1 Model
+      TF Prefix: chaser_1
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -125,11 +159,21 @@ Visualization Manager:
       Frame Timeout: 1
       Frames:
         All Enabled: false
-        body:
+        chaser_0/body:
           Value: true
-        camera:
-          Value: false
-        camera_optical:
+        chaser_0/camera:
+          Value: true
+        chaser_0/camera_optical:
+          Value: true
+        chaser_0/estimated_pose:
+          Value: true
+        chaser_1/body:
+          Value: true
+        chaser_1/camera:
+          Value: true
+        chaser_1/camera_optical:
+          Value: true
+        chaser_1/estimated_pose:
           Value: true
         estimated_pose:
           Value: true
@@ -144,20 +188,24 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          body:
-            camera:
-              camera_optical:
-                estimated_pose:
-                  target_body:
-                    {}
+          chaser_0/body:
+            chaser_0/camera:
+              chaser_0/camera_optical:
+                chaser_0/estimated_pose:
+                  {}
+          chaser_1/body:
+            chaser_1/camera:
+              chaser_1/camera_optical:
+                chaser_1/estimated_pose:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz_default_plugins/Image
-      Enabled: true
+      Enabled: false
       Max Value: 1
       Median window: 5
       Min Value: 0
-      Name: Aruco Verbose
+      Name: Aruco 0 Verbose
       Normalize Range: true
       Topic:
         Depth: 5
@@ -165,8 +213,23 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /aruco_verbose
-      Value: true
+        Value: /chaser_0/aruco_verbose
+      Value: false
+    - Class: rviz_default_plugins/Image
+      Enabled: false
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Aruco 1 Verbose
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /chaser_1/aruco_verbose
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -213,35 +276,37 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.5403034687042236
+      Distance: 3.4169745445251465
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.7502403855323792
-        Y: 0.3464783728122711
-        Z: 0.41266632080078125
+        X: 0.12172725051641464
+        Y: 0.47726136445999146
+        Z: 0.399186909198761
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.49124735593795776
+      Pitch: 0.7712470293045044
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.492991924285889
+      Yaw: 4.697990417480469
     Saved: ~
 Window Geometry:
-  Aruco Verbose:
+  Aruco 0 Verbose:
+    collapsed: false
+  Aruco 1 Verbose:
     collapsed: false
   Displays:
     collapsed: false
   Height: 956
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001e00000031efc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000001a6000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001a0041007200750063006f00200056006500720062006f0073006501000001e9000001720000002800ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d0065010000000000000780000002eb00fffffffb0000000800540069006d006501000000000000045000000000000000000000059a0000031e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001e00000031efc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000031e000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e0041007200750063006f0020003000200056006500720062006f0073006500000001e9000001720000002800fffffffb0000001e0041007200750063006f0020003100200056006500720062006f007300650000000297000000c40000002800ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d0065010000000000000780000002eb00fffffffb0000000800540069006d006501000000000000045000000000000000000000059a0000031e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -252,4 +317,4 @@ Window Geometry:
     collapsed: true
   Width: 1920
   X: 0
-  Y: 27
+  Y: 1179

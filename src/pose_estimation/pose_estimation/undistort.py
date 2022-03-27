@@ -31,10 +31,13 @@ class UndistortedPublisher(Node):
         self.bridge = CvBridge()
         self.declare_parameter('verbose', 0)
         self.declare_parameter('sim', False)
+        self.declare_parameter('camera', '/front_cam')
+
+        cam = ('/' + self.get_parameter('camera').get_parameter_value().string_value).replace('//', '/')
         
         self.publisher_disp = self.create_publisher(
             Image, 
-            '/undistorted', 
+            'undistorted', 
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
 
@@ -43,7 +46,7 @@ class UndistortedPublisher(Node):
             self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration('sim_calibration.json')
             self.create_subscription(
                 Image,
-                '/sim_camera/image_raw',
+                (cam + '/image_raw').lstrip('/'),
                 self.sim_callback,
                 QoSPresetProfiles.get_from_short_key('sensor_data')
             )

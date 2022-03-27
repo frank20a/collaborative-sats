@@ -57,7 +57,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <gravity>0 0 -9.81</gravity>
+    <gravity>0 0 0</gravity>
     <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     <atmosphere type='adiabatic'/>
     <physics type='ode'>
@@ -82,7 +82,7 @@
       <static>0</static>
       <link name='body'>
         <inertial>
-          <pose>0 0 0 0 -0 0</pose>
+          <pose>0 0 0 0 0 0</pose>
           <mass>1.25</mass>
           <inertia>
             <ixx>0.00520833</ixx>
@@ -226,10 +226,10 @@
         </link>
       </model>
       <model name='marker_cube'>
-        <pose>1 0 1 0 -0 0</pose>
+        <pose>0 0 1 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='body'>
-          <pose>1 0 1 0 -0 0</pose>
+          <pose>0 0 1 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>

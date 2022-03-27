@@ -21,7 +21,7 @@ class Odometry2TF(Node):
         t = TransformStamped()
         t.header = msg.header
 
-        t.child_frame_id = msg.child_frame_id
+        t.child_frame_id = (self.get_namespace() + '/' + msg.child_frame_id).lstrip('/')
         
         t.transform.translation.x = msg.pose.pose.position.x
         t.transform.translation.y = msg.pose.pose.position.y

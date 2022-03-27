@@ -41,14 +41,14 @@ class ArucoBoardPoseEstimator(Node):
 
         self.create_subscription(
             Image,
-            '/undistorted',
+            'undistorted',
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
 
         self.publisher_disp = self.create_publisher(
             Image, 
-            '/aruco_verbose', 
+            'aruco_verbose', 
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
@@ -77,6 +77,14 @@ class ArucoBoardPoseEstimator(Node):
                 rvec = np.reshape(rvec, (1,3))
                 tvec = np.reshape(tvec, (1,3))
 
+                t = tf_msg_from_vecs(
+                    rvec, 
+                    tvec, 
+                    (self.get_namespace() + '/estimated_pose').lstrip('/'),
+                    (self.get_namespace() + '/camera_optical').lstrip('/')
+                )
+                t.header.stamp = self.get_clock().now().to_msg()
+                
                 # Verbosity
                 if self.get_parameter('verbose').get_parameter_value().integer_value > 2:
                     # self.get_logger().info(f'\n%s\n%s' % (str(tvec), str(rvec)))
@@ -92,16 +100,13 @@ class ArucoBoardPoseEstimator(Node):
                 cv.aruco.drawAxis(img, self.mtx, self.dist, rvec, tvec, 0.1)
                 cv.aruco.drawDetectedMarkers(img, corners, ids)
 
-                t = tf_msg_from_vecs(rvec, tvec, 'estimated_pose')
-                t.header.stamp = self.get_clock().now().to_msg()
-
                 # Send the transform
                 self.pose_br.sendTransform(t)
 
         if self.get_parameter('verbose').get_parameter_value().integer_value > 0:
             img_msg = self.bridge.cv2_to_imgmsg(img)
             img_msg.header.stamp = self.get_clock().now().to_msg()
-            img_msg.header.frame_id = 'camera_optical'
+            img_msg.header.frame_id = (self.get_namespace() + '/camera_optical').lstrip('/')
 
             self.publisher_disp.publish(img_msg)
 
