@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, Pose
 from rclpy.qos import QoSPresetProfiles
 from tf2_ros import TransformBroadcaster
 
@@ -12,7 +12,7 @@ class Odometry2TF(Node):
 
         self.create_subscription(
             Odometry,
-            'chaser_1/odom',
+            'odom',
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )

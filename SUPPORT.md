@@ -72,3 +72,26 @@ Camera reference system in Gazebo is different than the one proposed by OpenCV a
   <child link="camera_link_optical"/>
 </joint>
 ```
+
+## Add namespace to all plugins in a robot when spawning
+
+Just need to add parameter `-robot_namespace ns_1` when calling the `spawn_entity` node of the `gazebo_ros` package
+```py
+Node(
+  package='gazebo_ros',
+  executable='spawn_entity.py',
+  name='spawner',
+  parameters = [{
+    'use_sim_time': True
+  }],
+  arguments=[
+    '-topic', '/chaser_desc', 
+    '-entity', 'chaser',
+    '-robot_namespace', 'test'
+  ]
+)
+```
+
+## Get precise position of models in Gazebo
+
+You need to use the P3D plugin

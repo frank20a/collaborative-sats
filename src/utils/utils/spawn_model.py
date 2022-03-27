@@ -1,7 +1,9 @@
 import rclpy
 from gazebo_msgs.srv import SpawnEntity
 from rclpy.node import Node
-import xacro, sys, os
+import xacro, os
+
+from .utils import yaml2Pose
 
 class ModelSpawner(Node):
 
@@ -11,6 +13,7 @@ class ModelSpawner(Node):
         self.declare_parameter('name', '')
         self.declare_parameter('suffix', '')
         self.declare_parameter('folder', '')
+        self.declare_parameter('initial_pose', '{position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}')
 
         self.cli = self.create_client(SpawnEntity, 'spawn_entity')
         while not self.cli.wait_for_service(timeout_sec=1.0):
@@ -35,9 +38,12 @@ class ModelSpawner(Node):
         else:
             self.req.name = name
 
+        # Set the namespace for the plugin topics
         if suffix != '':
             self.req.robot_namespace = self.req.name
 
+        # Set the initial pose
+        self.req.initial_pose = yaml2Pose(self.get_parameter('initial_pose').get_parameter_value().string_value)
 
         self.future = self.cli.call_async(self.req)
 
