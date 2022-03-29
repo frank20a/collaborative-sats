@@ -1,7 +1,6 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster
 from rclpy.qos import QoSPresetProfiles
 from cv_bridge import CvBridge
@@ -23,6 +22,10 @@ class ArucoBoardPoseEstimator(Node):
         self.declare_parameter('verbose', 1)
         self.declare_parameter('sim', False)
         self.declare_parameter('model', 'marker_cube_1')
+        self.declare_parameter('fps', False)
+        
+        self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
+        self.fps_flag = self.get_parameter('fps').get_parameter_value().boolean_value
 
         # Setup ArUco recognition
         self.dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_5X5_50)
@@ -54,6 +57,9 @@ class ArucoBoardPoseEstimator(Node):
         
 
     def callback(self, msg):
+        if self.verbose > 0:
+            t = self.get_clock().now()
+        
         # Read image and undistort
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
@@ -86,7 +92,7 @@ class ArucoBoardPoseEstimator(Node):
                 t.header.stamp = self.get_clock().now().to_msg()
                 
                 # Verbosity
-                if self.get_parameter('verbose').get_parameter_value().integer_value > 2:
+                if self.verbose > 2:
                     # self.get_logger().info(f'\n%s\n%s' % (str(tvec), str(rvec)))
                     self.get_logger().info('\nTranslation: x={: >6.3f} y={: >6.3f} z={: >6.3f}\n   Rotation: x={: >6.3f} y={: >6.3f} z={: >6.3f} w={: >6.3f}'.format(
                         t.transform.translation.x,
@@ -103,16 +109,19 @@ class ArucoBoardPoseEstimator(Node):
                 # Send the transform
                 self.pose_br.sendTransform(t)
 
-        if self.get_parameter('verbose').get_parameter_value().integer_value > 0:
+        if self.verbose > 0:
             img_msg = self.bridge.cv2_to_imgmsg(img)
             img_msg.header.stamp = self.get_clock().now().to_msg()
             img_msg.header.frame_id = (self.get_namespace() + '/camera_optical').lstrip('/')
-
             self.publisher_disp.publish(img_msg)
-
-        if self.get_parameter('verbose').get_parameter_value().integer_value > 1:
+            
+        if self.verbose > 1:
             cv.imshow('Aruco Pose Estimation', img)
             cv.waitKey(1)
+            
+        if self.fps_flag:
+            self.get_logger().info('ArUco duration: %.3f ms' % ((self.get_clock().now() - t).nanoseconds / 1e6))
+
 
 
 def main(args=None):
