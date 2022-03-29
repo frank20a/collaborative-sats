@@ -32,10 +32,11 @@ class UndistortedPublisher(Node):
         self.declare_parameter('verbose', 0)
         self.declare_parameter('sim', False)
         self.declare_parameter('camera', '/front_cam')
-        self.declare_parameter('fps', False)
+        self.declare_parameter('duration', False)
 
         cam = ('/' + self.get_parameter('camera').get_parameter_value().string_value).replace('//', '/')
-        self.fps_flag = self.get_parameter('fps').get_parameter_value().boolean_value
+        self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
+        self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
 
         self.publisher_disp = self.create_publisher(
             Image, 
@@ -65,7 +66,7 @@ class UndistortedPublisher(Node):
         self.undistort(img)
 
     def sim_callback(self, msg):
-        if self.verbose > 0:
+        if self.fps_flag:
             t = self.get_clock().now()
             
         # self.get_logger().info("Simulation Callback")
@@ -73,7 +74,7 @@ class UndistortedPublisher(Node):
         self.undistort(cv.cvtColor(img, cv.COLOR_RGB2BGR))
         
         if self.fps_flag:
-            self.get_logger().info('Undistort duration: %.3f ms' % ((self.get_clock().now() - t).nanoseconds / 1e6))
+            self.get_logger().info('Undistort duration: %.3f ns' % ((self.get_clock().now() - t).nanoseconds))
 
 
     def undistort(self, img):

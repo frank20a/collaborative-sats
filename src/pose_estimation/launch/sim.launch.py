@@ -54,7 +54,8 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
             parameters = [{
                 'use_sim_time': True,
                 # 'verbose': 1,
-                'sim': True
+                'sim': True,
+                'duration': False
             }],
             namespace = ns
         )        
@@ -80,7 +81,8 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
             parameters = [{
                 'verbose': 1,
                 'use_sim_time': True,
-                'sim': True
+                'sim': True,
+                'duration': True
             }],
             namespace = ns
         )
@@ -132,6 +134,17 @@ def generate_launch_description():
             arguments = [
                 '-d', os.path.join(get_package_share_directory('pose_estimation'), 'rviz_config/aruco.rviz'),
             ],
+        )
+    )
+    
+    # Open Estimation Combiner
+    ld.add_entity(
+        Node(
+            package = 'pose_estimation',
+            executable = 'combine_estimations',
+            parameters =[{
+                'duration': False,
+            }],
         )
     )
     

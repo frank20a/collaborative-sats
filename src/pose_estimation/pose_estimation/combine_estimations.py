@@ -18,12 +18,12 @@ class CombineEstimations(Node):
         self.declare_parameter('num_chasers', 2)
         self.declare_parameter('fps', 50)
         self.declare_parameter('verbose', 0)
-        self.declare_parameter('fps', False)
+        self.declare_parameter('duration', False)
         
         self.num_chasers = self.get_parameter('num_chasers').get_parameter_value().integer_value
         self.fps = self.get_parameter('fps').get_parameter_value().integer_value
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
-        self.fps_flag = self.get_parameter('fps').get_parameter_value().bool_value
+        self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
         
         # create a timer to publish the combined transform
         self.timer = self.create_timer(1.0/self.fps, self.publish_combined_transform)
@@ -39,8 +39,7 @@ class CombineEstimations(Node):
         #         raise Exception("Could not get transform from world to chaser_{}/estimated_pose".format(i))
         
     def publish_combined_transform(self):
-        if self.fps_flag:
-            t = self.get_clock().now().nanoseconds
+        t = self.get_clock().now()
         
         try:
             # create a combined transform
@@ -51,8 +50,10 @@ class CombineEstimations(Node):
             
             euler_avg = np.array([0, 0, 0], dtype=np.float32)
             trans_avg = np.array([0, 0, 0], dtype=np.float32)
+            
+            now = Time()
             for i in range(self.num_chasers):
-                transform = self.buffer.lookup_transform('world', 'chaser_{}/estimated_pose'.format(i), Time())
+                transform = self.buffer.lookup_transform('world', 'chaser_{}/estimated_pose'.format(i), now)
 
                 trans_avg += np.array([
                     transform.transform.translation.x,
@@ -86,7 +87,8 @@ class CombineEstimations(Node):
             if self.verbose > 0: self.get_logger().info('Publishing combined transform')
             self.broadcaster.sendTransform(combined_transform)
         except TransformException as e: 
-            self.get_logger().error("Could not get transform from world to chaser_{}/estimated_pose".format(i))
+            if self.verbose > 0:
+                self.get_logger().error("Could not get transform from world to chaser_{}/estimated_pose".format(i))
             
         if self.fps_flag:
             self.get_logger().info('Combine duration: %.3f ms' % ((self.get_clock().now() - t).nanoseconds / 1e6))

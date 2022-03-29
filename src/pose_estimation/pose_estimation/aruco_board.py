@@ -22,10 +22,10 @@ class ArucoBoardPoseEstimator(Node):
         self.declare_parameter('verbose', 1)
         self.declare_parameter('sim', False)
         self.declare_parameter('model', 'marker_cube_1')
-        self.declare_parameter('fps', False)
+        self.declare_parameter('duration', False)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
-        self.fps_flag = self.get_parameter('fps').get_parameter_value().boolean_value
+        self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
 
         # Setup ArUco recognition
         self.dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_5X5_50)
@@ -57,8 +57,7 @@ class ArucoBoardPoseEstimator(Node):
         
 
     def callback(self, msg):
-        if self.verbose > 0:
-            t = self.get_clock().now()
+        tt = self.get_clock().now()
         
         # Read image and undistort
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
@@ -108,6 +107,9 @@ class ArucoBoardPoseEstimator(Node):
 
                 # Send the transform
                 self.pose_br.sendTransform(t)
+                            
+            if self.fps_flag:
+                self.get_logger().info('ArUco duration: %.3f ms' % ((self.get_clock().now() - tt).nanoseconds / 1e6))
 
         if self.verbose > 0:
             img_msg = self.bridge.cv2_to_imgmsg(img)
@@ -118,9 +120,6 @@ class ArucoBoardPoseEstimator(Node):
         if self.verbose > 1:
             cv.imshow('Aruco Pose Estimation', img)
             cv.waitKey(1)
-            
-        if self.fps_flag:
-            self.get_logger().info('ArUco duration: %.3f ms' % ((self.get_clock().now() - t).nanoseconds / 1e6))
 
 
 
