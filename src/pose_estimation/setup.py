@@ -33,6 +33,7 @@ setup(
             'undistort = ' + package_name + '.undistort:main',
             'aruco_estimator = ' + package_name + '.aruco:main',
             'aruco_board_estimator = ' + package_name + '.aruco_board:main',
+            'combine_estimations = ' + package_name + '.combine_estimations:main',
         ],
     },
 )
