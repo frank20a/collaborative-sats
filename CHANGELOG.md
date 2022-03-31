@@ -1,6 +1,19 @@
+# Future Development
+
+- Kalman Filtering
+  - Filtering pose estimation output from each chaser
+  - Sensor fusion from the different chasers
+  - Improving on the estimation model to include the chasers plant
+- Controllers
+  - Add controllers to the chaser so I can move them arround by hand
+  - Controller for visual locking
+  - Controller for attitude synchronization
+  - Controller for docking
+- Visual Pose Estimation Methods (using features instead of markers)
+
 # Changelog
 
-## 27 March 2022
+## 27 March 2022 dd7153b03bb853ee56379ad59e1d8e7d19ba5308
 
 Managed to launch multiple chasers in the simulation with their own namespaces that seperately estimate the pose of the target.
 
