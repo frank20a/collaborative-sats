@@ -3,10 +3,14 @@
 The `pose_estimation` package provides various methods for a chaser to estimate the pose of a target.
 
 Flow of the pose estimation:
+
 - Chaser publishes image from camera
-- Undistort 0.00ns
-- Estimate pose from markers 
-- Combine estimations from different chasers ~3.50ms
+- Undistort ~45ms
+- Estimate pose from markers ~25ms
+- Translate and publish odometry from chasers 
+- Combine estimations from different chasers ~5ms
+
+Total average time: ~75ms
 
 
 ## calibrator
@@ -48,7 +52,7 @@ Takes the output of the undistort node in the /undistorted topic and calculates 
 ## aruco_board_estimator
 This node uses the ArUco Board functionality of OpenCV to calculate the pose of a 3D object that has ArUco markers (from the 5x5_50 Dictionary) printed on it. For that, prio knowledge of the position of the markers relative to the objects axis is required. This knowledge must be given in the form of OpenCV.ArUco Object Points which is a 4x3 array containing the position of each corner (in **CCW** order) of each marker on the object relative to the objects axis. These models are written in the [`objPoints.py`](/pose_estimation/objPoints.py) following the example of `marker_cube_1`.
 
-Duration per image: ~0.00ns
+Duration per image: ~20-30ms
 
 ### Parameters
 - `verbose` Verbocity level (0-Nothing, 1-Publish image with pose estimation on /aruco_verbose, 2-Image Preview, 3-Translation & Rotation matrix in the console, default: 1)
@@ -58,7 +62,7 @@ Duration per image: ~0.00ns
 ## Combine Estimations
 This node combines the pose estimation of the target from the multiple chasers by averaging them. It publishes the pose of the object relative to the camera frame.
 
-Duration per cycle: ~3.50ms
+Duration per cycle: ~1-12ms
 
 ### Parameters
 - `fps` The number of cycles per second to calculate the average pose (default: 50)

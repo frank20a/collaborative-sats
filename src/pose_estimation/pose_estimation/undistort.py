@@ -74,7 +74,7 @@ class UndistortedPublisher(Node):
         self.undistort(cv.cvtColor(img, cv.COLOR_RGB2BGR))
         
         if self.fps_flag:
-            self.get_logger().info('Undistort duration: %.3f ns' % ((self.get_clock().now() - t).nanoseconds))
+            self.get_logger().info('Undistort duration: %.3f ms' % ((self.get_clock().now() - t).nanoseconds / 1e6))
 
 
     def undistort(self, img):
