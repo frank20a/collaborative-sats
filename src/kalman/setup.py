@@ -4,7 +4,7 @@ package_name = 'kalman'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='0.0.1',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -13,13 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='frank20a',
+    maintainer='Frank Fourlas',
     maintainer_email='frank.fourlas@gmail.com',
-    description='TODO: Package description',
+    description='This package provides a Kalman filters for rigid body tracking',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'filter_rigid_body = ' + package_name + '.filter_rigid_body:main',
         ],
     },
 )
