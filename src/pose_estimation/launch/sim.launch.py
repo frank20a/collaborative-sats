@@ -82,7 +82,7 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
                 'verbose': 1,
                 'use_sim_time': True,
                 'sim': True,
-                'duration': True
+                'duration': False
             }],
             namespace = ns
         )
