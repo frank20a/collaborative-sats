@@ -48,7 +48,8 @@ class CombineEstimations(Node):
             combined_transform.header.frame_id = 'world'
             combined_transform.child_frame_id = 'estimated_pose'
             
-            euler_avg = np.array([0, 0, 0], dtype=np.float32)
+            euler_avg_num = np.array([0, 0, 0], dtype=np.float32)
+            euler_avg_denum = np.array([0, 0, 0], dtype=np.float32)
             trans_avg = np.array([0, 0, 0], dtype=np.float32)
             
             now = Time()
@@ -67,10 +68,11 @@ class CombineEstimations(Node):
                     transform.transform.rotation.z, 
                     transform.transform.rotation.w
                 ]
-                euler_avg += np.array(euler_from_quaternion(quat))
+                euler_avg_num += np.sin(np.array(euler_from_quaternion(quat)))
+                euler_avg_denum += np.cos(np.array(euler_from_quaternion(quat)))
                 
             trans_avg /= self.num_chasers
-            euler_avg /= self.num_chasers
+            euler_avg = np.arctan2(euler_avg_num, euler_avg_denum)
             quat_avg = quaternion_from_euler(euler_avg[0], euler_avg[1], euler_avg[2])
             
             combined_transform.transform.translation.x = float(trans_avg[0])
