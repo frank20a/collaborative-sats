@@ -12,13 +12,15 @@ class RigidBodyKalman(Node):
 
         # Declare parameters
         self.declare_parameter('verbose', 1)
-        self.declare_parameter('filter', 'const_accel')
+        self.declare_parameter('filter_type', 'const_accel')
         self.declare_parameter('duration', False)
         
         # Get parameters
-        self.filter = filters[self.get_parameter('filter').get_parameter_value().string_value]
+        self.filter = filters[self.get_parameter('filter_type').get_parameter_value().string_value]
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.duration = self.get_parameter('duration').get_parameter_value().bool_value
+        
+        
 
         
         

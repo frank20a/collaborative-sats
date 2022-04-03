@@ -55,7 +55,7 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
                 'use_sim_time': True,
                 'verbose': 0,
                 'sim': True,
-                'duration': True
+                'duration': False
             }],
             namespace = ns
         )        
@@ -79,9 +79,10 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
             package = 'pose_estimation',
             executable = 'aruco_board_estimator',
             parameters = [{
-                'verbose': 1,
+                # 'verbose': 1,
                 'use_sim_time': True,
                 'sim': True,
+                'filter': 'const_accel',
                 'duration': False
             }],
             namespace = ns
@@ -144,6 +145,7 @@ def generate_launch_description():
             executable = 'combine_estimations',
             parameters =[{
                 'duration': False,
+                'use_sim_time': True
             }],
         )
     )
