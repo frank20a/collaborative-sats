@@ -38,9 +38,9 @@ class ArucoBoardPoseEstimator(Node):
 
         # Get calibration parameters
         if self.get_parameter('sim').get_parameter_value().bool_value:
-            self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration('sim_calibration.json')
+            self.mtx, self.dist, _, _, _, _ = get_camera_calibration('sim_calibration.json')
         else:
-            self.mtx, self.dist, self.new_mtx, self.roi = get_camera_calibration()
+            self.mtx, self.dist, _, _, _, _ = get_camera_calibration()
 
         self.create_subscription(
             Image,

@@ -139,7 +139,9 @@ class Calibrator(Node):
                 'rvecs': np.asarray(rvecs).tolist(),
                 'tvecs': np.asarray(tvecs).tolist(),
                 'new_mtx':np.asarray(new_mtx).tolist(),
-                'roi': np.asarray(roi).tolist()
+                'roi': np.asarray(roi).tolist(),
+                'h': h,
+                'w': w
             }, f)
 
         self.get_logger().info(f"Finilizing... Saved to %s" % path)

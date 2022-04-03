@@ -53,9 +53,9 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
             executable = 'undistort',
             parameters = [{
                 'use_sim_time': True,
-                # 'verbose': 1,
+                'verbose': 0,
                 'sim': True,
-                'duration': False
+                'duration': True
             }],
             namespace = ns
         )        
