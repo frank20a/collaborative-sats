@@ -5,12 +5,12 @@ The `pose_estimation` package provides various methods for a chaser to estimate 
 Flow of the pose estimation:
 
 - Chaser publishes image from camera
-- Undistort ~45ms
+- Undistort ~~~45ms~~ 30ms
 - Estimate pose from markers ~25ms
 - Translate and publish odometry from chasers 
 - Combine estimations from different chasers ~5ms
 
-Total average time: ~75ms
+Total average time: ~60ms
 
 
 ## calibrator
@@ -34,7 +34,7 @@ Generates a sim_calibration.json file that can be used to un-distort a camera ou
 ## undistort
 Takes a cameras calibration parameters from a JSON file and un-distorts images taken by that camera. It then publishes the un-distorted video frame-by-frame to the /undistorted topic. The node either uses the computers camera input or a ROS topic on which a simulation publishes images.
 
-Duration per image: ~0.00ns
+Duration per image: ~25-40ms
 
 ### Parameters
 - int `verbose` Verbocity level (0-Nothing, 1-Image Preview, default: 0)
