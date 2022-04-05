@@ -73,11 +73,11 @@ class ArucoBoardPoseEstimator(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        self.publisher_filtered = self.create_publisher(
-            TransformStamped,
-            'filtered_estimation',
-            QoSPresetProfiles.get_from_short_key('sensor_data')
-        )
+        # self.publisher_filtered = self.create_publisher(
+        #     TransformStamped,
+        #     'filtered_estimation',
+        #     QoSPresetProfiles.get_from_short_key('sensor_data')
+        # )
               
     def callback(self, msg: Image):
         tt = time()
