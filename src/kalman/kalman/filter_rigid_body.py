@@ -20,6 +20,10 @@ class RigidBodyKalman(Node):
         
         # Create tf2 broadcaster
         self.pose_br = TransformBroadcaster(self)
+        
+        # create a tf2 buffer and listener
+        self.buffer = Buffer(Duration(seconds=10))
+        self.listener = TransformListener(self.buffer, self)
 
         # Declare parameters
         self.declare_parameter('verbose', 1)
