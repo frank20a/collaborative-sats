@@ -1,11 +1,11 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, Vector3
 from tf2_ros import TransformBroadcaster
 from rclpy.qos import QoSPresetProfiles
 from cv_bridge import CvBridge
-from tf_transformations import euler_from_quaternion
+from tf_transformations import quaternion_from_matrix
 
 import cv2 as cv
 import numpy as np
@@ -14,7 +14,6 @@ from time import time
 
 from .undistort import get_camera_calibration
 from .objPoints import models
-from .aruco import tf_msg_from_vecs
 from .rigid_body_filters import filters
 
 class ArucoBoardPoseEstimator(Node):
@@ -29,6 +28,7 @@ class ArucoBoardPoseEstimator(Node):
         self.declare_parameter('model', 'marker_cube_1')
         self.declare_parameter('duration', False)
         self.declare_parameter('filter', '')
+        self.declare_parameter('ra_len', 3)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
@@ -37,6 +37,7 @@ class ArucoBoardPoseEstimator(Node):
             self.filter = False
         else:
             self.filter = filters[self.filter](1/60)
+        self.avg = np.zeros((self.get_parameter('ra_len').get_parameter_value().integer_value, 2, 3))
             
 
         # Setup ArUco recognition
@@ -67,18 +68,18 @@ class ArucoBoardPoseEstimator(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        self.publisher_pose = self.create_publisher(
+        self.to_filter = self.create_publisher(
             TransformStamped,
-            'pose_estimation',
+            'estimated_pose',
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        # self.publisher_filtered = self.create_publisher(
-        #     TransformStamped,
-        #     'filtered_estimation',
-        #     QoSPresetProfiles.get_from_short_key('sensor_data')
-        # )
-              
+        self.debug_pub = self.create_publisher(
+            Vector3,
+            'raw_estimation',
+            QoSPresetProfiles.get_from_short_key('sensor_data')
+        )
+                       
     def callback(self, msg: Image):
         tt = time()
         
@@ -88,19 +89,15 @@ class ArucoBoardPoseEstimator(Node):
         if t is None: return
         t.header.stamp = msg.header.stamp
         
-        # Filter the estimation
-        # if self.filter is not None:
-        #     t_filtered = self.filter_data(t)
-        
         # Send the transform
-        self.publisher_pose.publish(t)
         self.pose_br.sendTransform(t)
+        self.to_filter.publish(t)
         
         if self.fps_flag:
             self.get_logger().info('ArUco duration: %.3f ms' % ((time() - tt) * 1e3))
 
     def get_estimation(self, img) -> TransformStamped:
-        # Detect markers
+        # ======================== Detect Markers ========================
         corners, ids, _ = cv.aruco.detectMarkers(img, self.dictionary, parameters=self.params)
         if len(corners) <= 0: return None
         
@@ -119,13 +116,42 @@ class ArucoBoardPoseEstimator(Node):
             
         rvec = np.reshape(rvec, (1,3))
         tvec = np.reshape(tvec, (1,3))
+        
+        # ======================== Rolling Average =======================
+        self.avg = np.roll(self.avg, -1, axis=0)
+        self.avg[-1, :, :] = np.array([rvec, tvec]).reshape((2, 3))
+        rvec = np.average(self.avg[:, 0, :], axis=0)
+        tvec = np.average(self.avg[:, 1, :], axis=0)
 
-        t = tf_msg_from_vecs(
-            rvec, 
-            tvec, 
-            (self.get_namespace() + '/estimated_pose').lstrip('/'),
-            (self.get_namespace() + '/camera_optical').lstrip('/')
-        )
+        # ========================= Make Message =========================
+        t = TransformStamped()
+        # t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = (self.get_namespace() + '/camera_optical').lstrip('/')
+        t.child_frame_id = (self.get_namespace() + '/estimated_pose').lstrip('/')
+
+        # Store the translation (i.e. position) information
+        t.transform.translation.x = tvec[0]
+        t.transform.translation.y = tvec[1]
+        t.transform.translation.z = tvec[2]
+
+        # Store the rotation information
+        rotation_matrix = np.eye(4)
+        rotation_matrix[0:3, 0:3], _ = cv.Rodrigues(rvec)
+        quat = quaternion_from_matrix(rotation_matrix)
+        
+        
+        # Quaternion format     
+        t.transform.rotation.x = quat[0]
+        t.transform.rotation.y = quat[1]
+        t.transform.rotation.z = quat[2]
+        t.transform.rotation.w = quat[3]
+        
+        # =========================== Debug ===========================
+        tmp = Vector3()
+        tmp.x = rvec[0]
+        tmp.y = rvec[1]
+        tmp.z = rvec[2]
+        self.debug_pub.publish(tmp)
         
         # ========================== Verbose ==========================
         if self.verbose > 0:
@@ -154,13 +180,6 @@ class ArucoBoardPoseEstimator(Node):
             ))       
 
         return t   
-        
-    def filter_data(self, t: TransformStamped) -> TransformStamped:
-        euler = np.array(euler_from_quaternion([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w]), dtype=np.float32)
-        trans = np.array([t.transform.translation.x, t.transform.translation.y, t.transform.translation.z], dtype=np.float32)
-        
-        self.filter.predict()
-        # self.filter.correct(np.concatenate((trans, euler)))
         
         
 
