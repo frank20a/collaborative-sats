@@ -1,9 +1,14 @@
 import rclpy
+from rclpy.time import Time, Duration
 from rclpy.node import Node
-from geometry_msgs.msg import TransformStamped
-from tf2_ros import TransformBroadcaster
-from rclpy.qos import QoSPresetProfiles
+from std_msgs.msg import Header
+from tf2_ros import LookupException, ExtrapolationException, ConnectivityException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_broadcaster import TransformBroadcaster
+from tf2_ros.transform_listener import TransformListener
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
+from rclpy.qos import QoSPresetProfiles
+from geometry_msgs.msg import TransformStamped
 
 import numpy as np
 
@@ -13,7 +18,13 @@ from .filter_type import filters
 class RigidBodyKalman(Node):
     def __init__(self):
         super().__init__('kalman_filter')
+        
+        # Create tf2 broadcaster
         self.pose_br = TransformBroadcaster(self)
+        
+        # create a tf2 buffer and listener
+        self.buffer = Buffer(Duration(seconds=10))
+        self.listener = TransformListener(self.buffer, self)
 
         # Declare parameters
         self.declare_parameter('verbose', 1)
@@ -27,21 +38,25 @@ class RigidBodyKalman(Node):
         self.duration = self.get_parameter('duration').get_parameter_value().bool_value
         self.state_indexes = [int(i) for i in self.get_parameter('state_indexes').get_parameter_value().string_value.split(',')]
         
-        
         self.create_subscription(
             TransformStamped,
-            'pose_estimation',
+            'estimated_pose',
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
-        
-        self.publisher_disp = self.create_publisher(
-            TransformStamped, 
-            'filtered_estimation', 
-            QoSPresetProfiles.get_from_short_key('sensor_data')
-        )
 
-    def callback(self, t):
+    def callback(self, msg):
+        try:
+            t = self.buffer.lookup_transform(
+                'world', 
+                'chaser_0/estimated_pose', 
+                msg.stamp,
+                Duration(seconds=15)
+            )
+        except (LookupException, ConnectivityException, ExtrapolationException) as e:
+            self.get_logger().error("Not Ready")
+            return
+        
         euler = np.array(euler_from_quaternion([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w]), dtype=np.float32)
         trans = np.array([t.transform.translation.x, t.transform.translation.y, t.transform.translation.z], dtype=np.float32)
         
@@ -59,7 +74,6 @@ class RigidBodyKalman(Node):
         
         t.child_frame_id = (self.get_namespace() + '/filtered_estimation').lstrip('/')
         self.pose_br.sendTransform(t)
-        self.publisher_disp.publish(t)
         
         
 def main(args=None):

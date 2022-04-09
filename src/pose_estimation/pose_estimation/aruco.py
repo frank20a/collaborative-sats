@@ -5,6 +5,7 @@ from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster
 from rclpy.qos import QoSPresetProfiles
 from cv_bridge import CvBridge
+from tf_transformations import quaternion_from_matrix
 
 import cv2 as cv
 from .undistort import get_camera_calibration
@@ -29,8 +30,10 @@ def tf_msg_from_vecs(rvec, tvec, child_frame, parent_frame = 'camera_optical'):
     # Store the rotation information
     rotation_matrix = np.eye(4)
     rotation_matrix[0:3, 0:3] = cv.Rodrigues(np.array(rvec[0]))[0]
-    r = R.from_matrix(rotation_matrix[0:3, 0:3])
-    quat = r.as_quat()   
+    quat = quaternion_from_matrix(rotation_matrix)
+    # r = R.from_matrix(rotation_matrix[0:3, 0:3])
+    # quat = r.as_quat()   
+    
     
     # Quaternion format     
     t.transform.rotation.x = quat[0] 

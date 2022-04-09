@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import Header
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster
@@ -67,17 +68,11 @@ class ArucoBoardPoseEstimator(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        self.publisher_pose = self.create_publisher(
-            TransformStamped,
-            'pose_estimation',
+        self.announce_estimation = self.create_publisher(
+            Header,
+            'announce_estimation',
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
-        
-        # self.publisher_filtered = self.create_publisher(
-        #     TransformStamped,
-        #     'filtered_estimation',
-        #     QoSPresetProfiles.get_from_short_key('sensor_data')
-        # )
               
     def callback(self, msg: Image):
         tt = time()
@@ -88,13 +83,9 @@ class ArucoBoardPoseEstimator(Node):
         if t is None: return
         t.header.stamp = msg.header.stamp
         
-        # Filter the estimation
-        # if self.filter is not None:
-        #     t_filtered = self.filter_data(t)
-        
         # Send the transform
-        self.publisher_pose.publish(t)
         self.pose_br.sendTransform(t)
+        self.announce_estimation.publish(t.header)
         
         if self.fps_flag:
             self.get_logger().info('ArUco duration: %.3f ms' % ((time() - tt) * 1e3))
@@ -154,13 +145,6 @@ class ArucoBoardPoseEstimator(Node):
             ))       
 
         return t   
-        
-    def filter_data(self, t: TransformStamped) -> TransformStamped:
-        euler = np.array(euler_from_quaternion([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w]), dtype=np.float32)
-        trans = np.array([t.transform.translation.x, t.transform.translation.y, t.transform.translation.z], dtype=np.float32)
-        
-        self.filter.predict()
-        # self.filter.correct(np.concatenate((trans, euler)))
         
         
 

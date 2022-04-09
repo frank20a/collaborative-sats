@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'filter_rigid_body = ' + package_name + '.filter_rigid_body:main',
+            'tester = ' + package_name + '.test:main',
         ],
     },
 )

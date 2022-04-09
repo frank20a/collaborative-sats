@@ -97,16 +97,10 @@ class ConstAccelQuat(KalmanFilter):
         tmp[3:6, 9:12] = np.eye(3, dtype=np.float32)
         self.H = tmp
         
-        # Process/Measurement noise covariance & Error
-        # self.processNoiseCov = 1e-5 * np.eye(18)
-        # self.measurementNoiseCov = 1e-4 * np.eye(6)
-        # self.errorCovPost = 1. * np.eye(18)
-        # self.statePost = 1. * np.zeros((18, 1))
-        
-        # Nose matrices
-        self.P *= 1e4      # Covariance matrix
-        self.R *= 1e-2     # Measurement noise
-        self.Q *= 1e-6     # Process noise
+        # Noise matrices
+        self.P *= 1e4       # Covariance matrix
+        self.Q *= 1e-2      # Process noise
+        self.R *= 1e-4      # Measurement noise
 
 filters = {
     'const_accel': ConstAccel,
