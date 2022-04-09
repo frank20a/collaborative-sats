@@ -29,7 +29,7 @@ class ArucoBoardPoseEstimator(Node):
         self.declare_parameter('model', 'marker_cube_1')
         self.declare_parameter('duration', False)
         self.declare_parameter('filter', '')
-        self.declare_parameter('ra_len', 3)
+        self.declare_parameter('ra_len', 6)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
@@ -69,9 +69,9 @@ class ArucoBoardPoseEstimator(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        self.to_filter = self.create_publisher(
-            TransformStamped,
-            'estimated_pose',
+        self.pose_announcement = self.create_publisher(
+            Header,
+            'announcement',
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
@@ -92,7 +92,7 @@ class ArucoBoardPoseEstimator(Node):
         
         # Send the transform
         self.pose_br.sendTransform(t)
-        self.to_filter.publish(t)
+        self.pose_announcement.publish(t.header)
         
         if self.fps_flag:
             self.get_logger().info('ArUco duration: %.3f ms' % ((time() - tt) * 1e3))

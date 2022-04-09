@@ -5,6 +5,7 @@ from std_msgs.msg import Header
 from tf2_ros import LookupException, ExtrapolationException, ConnectivityException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_broadcaster import TransformBroadcaster
+from tf2_ros.transform_listener import TransformListener
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
 from rclpy.qos import QoSPresetProfiles
 from geometry_msgs.msg import TransformStamped
@@ -22,8 +23,8 @@ class RigidBodyKalman(Node):
         self.pose_br = TransformBroadcaster(self)
         
         # create a tf2 buffer and listener
-        self.buffer = Buffer(Duration(seconds=10))
-        self.listener = TransformListener(self.buffer, self)
+        self.buffer = Buffer()
+        TransformListener(self.buffer, self)
 
         # Declare parameters
         self.declare_parameter('verbose', 1)
@@ -37,14 +38,18 @@ class RigidBodyKalman(Node):
         self.duration = self.get_parameter('duration').get_parameter_value().bool_value
         self.state_indexes = [int(i) for i in self.get_parameter('state_indexes').get_parameter_value().string_value.split(',')]
         
+        self.announcement = None
         self.create_subscription(
-            TransformStamped,
-            'estimated_pose',
-            self.callback,
+            Header,
+            'announcement',
+            self.set_announcement,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
 
-    def callback(self, t):        
+    def set_announcement(self, msg):
+        self.announcement = msg
+    
+    def callback(self, t):
         euler = np.array(euler_from_quaternion([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w]), dtype=np.float32)
         trans = np.array([t.transform.translation.x, t.transform.translation.y, t.transform.translation.z], dtype=np.float32)
         
@@ -67,7 +72,21 @@ class RigidBodyKalman(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = RigidBodyKalman()
-    rclpy.spin(node)
+    
+    while rclpy.ok():
+        rclpy.spin_once(node)
+        if node.announcement is None: continue
+        
+        try:
+            t = node.buffer.lookup_transform('world', (node.get_namespace() + '/estimated_pose').lstrip('/'), node.announcement.stamp)
+        except (LookupException, ConnectivityException, ExtrapolationException):
+            pass
+        except TypeError:
+            node.get_logger().info(str(node.announcement))
+        else:
+            node.callback(t)
+            node.announcement = None
+        
     node.destroy_node()
     rclpy.shutdown()
             

@@ -100,7 +100,7 @@ class ConstAccelQuat(KalmanFilter):
         # Noise matrices
         self.P *= 1e4       # Covariance matrix
         self.Q *= 1e-2      # Process noise
-        self.R *= 1e-4      # Measurement noise
+        self.R *= 1e-3      # Measurement noise
 
 filters = {
     'const_accel': ConstAccel,
