@@ -58,7 +58,7 @@ class ArucoBoardPoseEstimator(Node):
 
         self.create_subscription(
             Image,
-            'undistorted',
+            'input_img',
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
@@ -75,11 +75,12 @@ class ArucoBoardPoseEstimator(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        self.debug_pub = self.create_publisher(
-            Vector3,
-            'raw_estimation',
-            QoSPresetProfiles.get_from_short_key('sensor_data')
-        )
+        if self.verbose > 0:
+            self.debug_pub = self.create_publisher(
+                Vector3,
+                'raw_estimation',
+                QoSPresetProfiles.get_from_short_key('sensor_data')
+            )
                        
     def callback(self, msg: Image):
         tt = time()
@@ -148,11 +149,12 @@ class ArucoBoardPoseEstimator(Node):
         t.transform.rotation.w = quat[3]
         
         # =========================== Debug ===========================
-        tmp = Vector3()
-        tmp.x = rvec[0]
-        tmp.y = rvec[1]
-        tmp.z = rvec[2]
-        self.debug_pub.publish(tmp)
+        if self.verbose > 0:
+            tmp = Vector3()
+            tmp.x = rvec[0]
+            tmp.y = rvec[1]
+            tmp.z = rvec[2]
+            self.debug_pub.publish(tmp)
         
         # ========================== Verbose ==========================
         if self.verbose > 0:
@@ -181,7 +183,6 @@ class ArucoBoardPoseEstimator(Node):
             ))       
 
         return t   
-        
         
 
 def main(args=None):

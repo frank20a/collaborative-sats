@@ -46,20 +46,20 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
         )
     )
 
-    # Open Undistorter
-    ld.add_entity(
-        Node(
-            package = 'pose_estimation',
-            executable = 'undistort',
-            parameters = [{
-                'use_sim_time': True,
-                'verbose': 0,
-                'sim': True,
-                'duration': False
-            }],
-            namespace = ns
-        )        
-    )
+    ## Open Undistorter
+    # ld.add_entity(
+    #     Node(
+    #         package = 'pose_estimation',
+    #         executable = 'undistort',
+    #         parameters = [{
+    #             'use_sim_time': True,
+    #             'verbose': 0,
+    #             'sim': True,
+    #             'duration': False
+    #         }],
+    #         namespace = ns
+    #     )        
+    # )
 
     # Start Odometry translator
     ld.add_entity(
@@ -85,6 +85,9 @@ def robot_spawner(ld: LaunchDescription, robot_count: int):
                 'filter': 'const_accel',
                 'duration': False
             }],
+            remappings=[
+                ('input_img', 'front_cam/image_raw'),
+            ],
             namespace = ns
         )
     )
