@@ -1,0 +1,25 @@
+rosbag2_bagfile_information:
+  version: 4
+  storage_identifier: sqlite3
+  relative_file_paths:
+    - kalman_test_2_0.db3
+  duration:
+    nanoseconds: 84218822216
+  starting_time:
+    nanoseconds_since_epoch: 1649286951924541229
+  message_count: 1324
+  topics_with_message_count:
+    - topic_metadata:
+        name: /chaser_0/filtered_estimation
+        type: geometry_msgs/msg/TransformStamped
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 1\n  depth: 5\n  reliability: 2\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 623
+    - topic_metadata:
+        name: /chaser_0/pose_estimation
+        type: geometry_msgs/msg/TransformStamped
+        serialization_format: cdr
+        offered_qos_profiles: "- history: 1\n  depth: 5\n  reliability: 2\n  durability: 2\n  deadline:\n    sec: 9223372036\n    nsec: 854775807\n  lifespan:\n    sec: 9223372036\n    nsec: 854775807\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 9223372036\n    nsec: 854775807\n  avoid_ros_namespace_conventions: false"
+      message_count: 701
+  compression_format: ""
+  compression_mode: ""

@@ -57,7 +57,9 @@ def calibrateCameraLive(num_images: int = 15, cb: tuple = (8, 5)):
             'rvecs': np.asarray(rvecs).tolist(),
             'tvecs': np.asarray(tvecs).tolist(),
             'new_mtx':np.asarray(new_mtx).tolist(),
-            'roi': np.asarray(roi).tolist()
+            'roi': np.asarray(roi).tolist(),
+            'h': h,
+            'w': w
         }, f)
     return mtx, dist, rvecs, tvecs, new_mtx, roi
 
@@ -107,7 +109,9 @@ def calibrateCameraFiles(cb: tuple = (8, 5), folder = os.getcwd()):
             'rvecs': np.asarray(rvecs).tolist(),
             'tvecs': np.asarray(tvecs).tolist(),
             'new_mtx':np.asarray(new_mtx).tolist(),
-            'roi': np.asarray(roi).tolist()
+            'roi': np.asarray(roi).tolist(),
+            'h': h,
+            'w': w
         }, f)
     return mtx, dist, rvecs, tvecs, new_mtx, roi
 
@@ -116,7 +120,7 @@ def get_camera_calibration():
     with open(os.path.join(get_package_share_directory('pose_estimation'), 'calibration.json'), 'r') as f:
         cal = json.load(f)
 
-    return np.asarray(cal['mtx']), np.asarray(cal['dist']), np.asarray(cal['new_mtx']), np.asarray(cal['roi'])
+    return np.asarray(cal['mtx']), np.asarray(cal['dist']), np.asarray(cal['new_mtx']), np.asarray(cal['roi']), cal['h'], cal['w']
 
 
 class Calibrator(Node):
