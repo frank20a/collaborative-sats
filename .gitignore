@@ -1,6 +1,7 @@
-/build/
-/install/
-/log/
+build/
+install/
+log/
 notes.txt
 launch files notes.txt
 __pycache__/
+.vscode/
