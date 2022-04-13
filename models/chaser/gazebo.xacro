@@ -2,10 +2,6 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="macros.xacro"/>
 
-    <gazebo>
-        <static>true</static>
-    </gazebo>
-
     <!-- Materials -->
     <gazebo reference="body">
         <material>Gazebo/DarkGrey</material>
@@ -16,6 +12,11 @@
 
     <!-- Plugins -->
     <gazebo>
+
+        <plugin name="controller_plugin" filename="libgazebo_ros_force.so">
+            <link_name>body</link_name>
+            <force_frame>link</force_frame>
+        </plugin>
         <!-- <plugin name="gazebo_ros_joint_state_publisher"
             filename="libgazebo_ros_joint_state_publisher.so">
             <update_rate>30</update_rate>

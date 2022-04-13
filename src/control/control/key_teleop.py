@@ -20,7 +20,7 @@ class KeyTeleop(Node):
         super().__init__('key_teleop')
         
         self.flag = 0
-        self.publisher = self.create_publisher(Int16, 'thrust', QoSPresetProfiles.get_from_short_key('system_default'))
+        self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
         
     def send(self):
         msg = Int16()
