@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'thrust = ' + package_name + '.thrust:main',
             'key_teleop = ' + package_name + '.key_teleop:main',
+            'pid_controller = ' + package_name + '.pid_controller:main',
         ],
     },
 )

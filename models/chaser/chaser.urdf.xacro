@@ -61,7 +61,7 @@
             </geometry>
         </visual>
 
-        <xacro:inertial_box mass="0.25" x="${body_x}" y="${body_y}" z="${body_z}">
+        <xacro:inertial_box mass="30.0" x="${body_x}" y="${body_y}" z="${body_z}">
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_box>
     </link>

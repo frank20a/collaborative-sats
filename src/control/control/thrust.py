@@ -32,10 +32,10 @@ class ThrustController(Node):
         
         req = Wrench()
         
-        req.force.x = 5e-2 * (1 if flag & POS_X else (-1 if flag & NEG_X else 0))
-        req.force.y = 5e-2 * (1 if flag & POS_Y else (-1 if flag & NEG_Y else 0))
-        req.force.z = 5e-2 * (1 if flag & POS_Z else (-1 if flag & NEG_Z else 0))
-        req.torque.z = 2e-3 * (1 if flag & POS_YAW else (-1 if flag & NEG_YAW else 0))
+        req.force.x = 2e0 * (1 if flag & POS_X else (-1 if flag & NEG_X else 0))
+        req.force.y = 2e0 * (1 if flag & POS_Y else (-1 if flag & NEG_Y else 0))
+        req.force.z = 2e0 * (1 if flag & POS_Z else (-1 if flag & NEG_Z else 0))
+        req.torque.z = 5e-2 * (1 if flag & POS_YAW else (-1 if flag & NEG_YAW else 0))
         
         self.pub.publish(req)
 
