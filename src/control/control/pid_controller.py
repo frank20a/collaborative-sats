@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int16
-from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Vector3, Twist
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
 from tf_transformations import euler_from_quaternion
@@ -20,7 +20,7 @@ POS_YAW = 0b01000000
 NEG_YAW = 0b10000000
 flags = [1, 2, 4, 8, 16, 32, 0, 0, 0, 0, 64, 128]
 
-def stepify(x, up_thresh = 0.3, down_thresh = None):
+def stepify(x, up_thresh = 0.25, down_thresh = None):
     if down_thresh is None:
         down_thresh = -up_thresh
     
@@ -31,23 +31,29 @@ def stepify(x, up_thresh = 0.3, down_thresh = None):
 
 class Odometry2TF(Node):
     def __init__(self):
-        super().__init__('odometry2tf')
+        super().__init__('pid')
         self.declare_parameter('setpoint', '-1 0.5 0.75 0 0 0')
         self.declare_parameter('verbose', 2)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
-        # self.setpoint = np.array([float(i) for i in self.get_parameter('setpoint').get_parameter_value().string_value.split()], dtype=np.float32)
-        self.setpoint = [-1.0, 0.5, 0.75, 0.0, 0.0, np.pi/6]
+        # self.setpoint = [float(i) for i in self.get_parameter('setpoint').get_parameter_value().string_value.split()]
+        self.setpoint = [1.0, 1.0, 0.75, 0.0, 0.0, np.pi]
         
         self.controller = [
-            PID(75, 15, 80, setpoint=self.setpoint[0], output_limits=(-1, 1), sample_time=1/30.0),  # x
-            PID(75, 15, 80, setpoint=self.setpoint[1], output_limits=(-1, 1), sample_time=1/30.0),  # y
-            PID(75, 15, 80, setpoint=self.setpoint[2], output_limits=(-1, 1), sample_time=1/30.0),  # z
-            PID(75, 15, 80, setpoint=self.setpoint[3], output_limits=(-1, 1), sample_time=1/30.0),  # roll
-            PID(75, 15, 80, setpoint=self.setpoint[4], output_limits=(-1, 1), sample_time=1/30.0),  # pitch
-            PID(75, 15, 80, setpoint=self.setpoint[5], output_limits=(-1, 1), sample_time=1/30.0),  # yaw
+            PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0),  # x
+            PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0),  # y
+            PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0),  # z
+            PID(75, 15, 80, output_limits=(-1, 1), sample_time=1/30.0),  # roll
+            PID(75, 15, 80, output_limits=(-1, 1), sample_time=1/30.0),  # pitch
+            PID(75, 15, 80, output_limits=(-1, 1), sample_time=1/30.0),  # yaw
         ]
 
+        self.create_subscription(
+            Twist,
+            'chaser_0/setpoint',
+            self.set_setpoint,
+            QoSPresetProfiles.get_from_short_key('sensor_data')
+        )
         self.create_subscription(
             Odometry,
             'chaser_0/odom',
@@ -67,22 +73,22 @@ class Odometry2TF(Node):
         cmd.data = 0
         
         euler = euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])
-        pose = np.array([
+        target = np.array([
             msg.pose.pose.position.x, 
             msg.pose.pose.position.y, 
             msg.pose.pose.position.z, 
-            euler[0],
-            euler[1],
+            euler[0], 
+            euler[1], 
             euler[2]
-        ])
+        ]) - np.array(self.setpoint)
         
-        twist = np.array([
-            msg.twist.twist.linear.x, 
-            msg.twist.twist.linear.y, 
-            msg.twist.twist.linear.z, 
-            msg.twist.twist.angular.x,
-            msg.twist.twist.angular.y,
-            msg.twist.twist.angular.z
+        pose = np.array([
+            target[0], 
+            target[1], 
+            target[2],
+            target[3],
+            target[4],
+            target[5]
         ])
         
         for i in range(6):
@@ -107,9 +113,9 @@ class Odometry2TF(Node):
             self.debug_setpoint_xyz.publish(tmp)
             
             tmp = Vector3()
-            tmp.x = self.setpoint[3]
-            tmp.y = self.setpoint[4]
-            tmp.z = self.setpoint[5]
+            tmp.x = self.setpoint[3] * 180 / np.pi
+            tmp.y = self.setpoint[4] * 180 / np.pi
+            tmp.z = self.setpoint[5] * 180 / np.pi
             self.debug_setpoint_rpy.publish(tmp)
             
             tmp = Vector3()
@@ -124,6 +130,9 @@ class Odometry2TF(Node):
             tmp.z = 1.0 if cmd[6] == '1' else (-1.0 if cmd[7] == '1' else 0.0)
             self.debug_cmd_rpy.publish(tmp)           
 
+    def set_setpoint(self, msg):
+        self.setpoint = [msg.linear.x, msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y, msg.angular.z]
+    
 
 def main(args=None):
     rclpy.init(args=args)

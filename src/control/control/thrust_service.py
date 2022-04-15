@@ -22,7 +22,7 @@ NEG_YAW = 0b10000000
 
 class ThrustController(Node):
     def __init__(self):
-        super().__init__('thrust_controller')
+        super().__init__('thrust_controller_service')
         
         self.cli = self.create_client(ApplyLinkWrench, 'apply_link_wrench')
         while not self.cli.wait_for_service(timeout_sec=1.0):
