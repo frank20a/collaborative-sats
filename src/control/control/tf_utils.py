@@ -1,7 +1,7 @@
 from geometry_msgs.msg import Pose, TransformStamped, Quaternion
 from nav_msgs.msg import Odometry
 import numpy as np
-from tf_transformations import quaternion_inverse, quaternion_multiply, quaternion_from_euler
+from tf_transformations import quaternion_inverse, quaternion_multiply
 
 
 def get_pose_diff(target: Pose, pose: Pose) -> Pose:

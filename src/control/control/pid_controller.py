@@ -4,9 +4,8 @@ from std_msgs.msg import Int16
 from geometry_msgs.msg import Vector3, Pose
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
-from tf_transformations import euler_from_quaternion, quaternion_from_euler
-from .tf_utils import get_pose_diff, odometry2array, odometry2tfstamped, odometry2pose, vector_rotate_quaternion
-from .tf2_geometry_msgs import do_transform_point
+from tf_transformations import euler_from_quaternion, quaternion_from_euler, quaternion_inverse
+from .tf_utils import get_pose_diff, odometry2array, odometry2pose, vector_rotate_quaternion
 
 import numpy as np
 from simple_pid import PID
@@ -51,8 +50,8 @@ class PIDController(Node):
         # self.set_setpoint(self.setpoint)
         
         self.controller = []
-        self.controller = self.controller + [PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0) for i in range(3)]     # x, y, z
-        self.controller = self.controller + [PID(75, 15, 80 , output_limits=(-1, 1), sample_time=1/30.0) for i in range(3)]     # roll, pitch, yaw
+        self.controller = self.controller + [PID(80, 10, 180, output_limits=(-1, 1), sample_time=1/30.0) for i in range(3)]     # x, y, z
+        self.controller = self.controller + [PID(75, 15, 150, output_limits=(-1, 1), sample_time=1/30.0) for i in range(3)]     # roll, pitch, yaw
 
         self.create_subscription(
             Pose,
@@ -90,7 +89,7 @@ class PIDController(Node):
         for i in range(6):            
             control[i] = self.controller[i](pose[i])
         u = np.array(control)
-        u[0:3] = vector_rotate_quaternion(u[0:3], odometry2array(msg)[3:])
+        u[0:3] = vector_rotate_quaternion(u[0:3], quaternion_inverse(odometry2array(msg)[3:]))
         
         for i, f in enumerate(u):
             # Skip roll and pitch control
