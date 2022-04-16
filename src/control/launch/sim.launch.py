@@ -7,7 +7,7 @@ import xacro, os
 
 
 raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
-world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
+world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'pid_test.world')
 
 
 def generate_launch_description():
@@ -65,13 +65,13 @@ def generate_launch_description():
     )
     
     # Start plotjuggler
-    ld.add_entity(
-        ExecuteProcess(
-            cmd = ['ros2', 'run', 'plotjuggler', 'plotjuggler', '--layout', '/home/frank20a/dev-ws/data/plotjuggler-configs/pid.xml'],
-            name = 'plotjuggler',
-            output = {'both': 'log'},
-        )
-    )
+    # ld.add_entity(
+    #     ExecuteProcess(
+    #         cmd = ['ros2', 'run', 'plotjuggler', 'plotjuggler', '--layout', '/home/frank20a/dev-ws/data/plotjuggler-configs/pid.xml'],
+    #         name = 'plotjuggler',
+    #         output = {'both': 'log'},
+    #     )
+    # )
     
     return ld
 

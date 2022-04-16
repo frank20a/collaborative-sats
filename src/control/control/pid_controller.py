@@ -1,10 +1,12 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int16
-from geometry_msgs.msg import Vector3, Twist
+from geometry_msgs.msg import Vector3, Pose
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
-from tf_transformations import euler_from_quaternion
+from tf_transformations import euler_from_quaternion, quaternion_from_euler
+from .tf_utils import get_pose_diff, odometry2array, odometry2tfstamped, odometry2pose, vector_rotate_quaternion
+from .tf2_geometry_msgs import do_transform_point
 
 import numpy as np
 from simple_pid import PID
@@ -20,6 +22,7 @@ POS_YAW = 0b01000000
 NEG_YAW = 0b10000000
 flags = [1, 2, 4, 8, 16, 32, 0, 0, 0, 0, 64, 128]
 
+
 def stepify(x, up_thresh = 0.25, down_thresh = None):
     if down_thresh is None:
         down_thresh = -up_thresh
@@ -29,27 +32,30 @@ def stepify(x, up_thresh = 0.25, down_thresh = None):
     return 0
 
 
-class Odometry2TF(Node):
+class PIDController(Node):
     def __init__(self):
         super().__init__('pid')
-        self.declare_parameter('setpoint', '-1 0.5 0.75 0 0 0')
         self.declare_parameter('verbose', 2)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
-        # self.setpoint = [float(i) for i in self.get_parameter('setpoint').get_parameter_value().string_value.split()]
-        self.setpoint = [1.0, 1.0, 0.75, 0.0, 0.0, np.pi]
         
-        self.controller = [
-            PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0),  # x
-            PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0),  # y
-            PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0),  # z
-            PID(75, 15, 80, output_limits=(-1, 1), sample_time=1/30.0),  # roll
-            PID(75, 15, 80, output_limits=(-1, 1), sample_time=1/30.0),  # pitch
-            PID(75, 15, 80, output_limits=(-1, 1), sample_time=1/30.0),  # yaw
-        ]
+        self.setpoint = Pose()
+        self.setpoint.position.x = -1.0
+        self.setpoint.position.y = -1.0
+        self.setpoint.position.z = 0.75
+        q = quaternion_from_euler(0.0, 0.0, np.pi)
+        self.setpoint.orientation.x = q[0]
+        self.setpoint.orientation.y = q[1]
+        self.setpoint.orientation.z = q[2]
+        self.setpoint.orientation.w = q[3]
+        # self.set_setpoint(self.setpoint)
+        
+        self.controller = []
+        self.controller = self.controller + [PID(80, 10, 200, output_limits=(-1, 1), sample_time=1/30.0) for i in range(3)]     # x, y, z
+        self.controller = self.controller + [PID(75, 15, 80 , output_limits=(-1, 1), sample_time=1/30.0) for i in range(3)]     # roll, pitch, yaw
 
         self.create_subscription(
-            Twist,
+            Pose,
             'chaser_0/setpoint',
             self.set_setpoint,
             QoSPresetProfiles.get_from_short_key('sensor_data')
@@ -68,54 +74,52 @@ class Odometry2TF(Node):
             self.debug_cmd_xyz = self.create_publisher(Vector3, 'debug/cmd_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
             self.debug_cmd_rpy = self.create_publisher(Vector3, 'debug/cmd_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
 
-    def callback(self, msg):
+    def callback(self, msg: Odometry):
         cmd = Int16()
         cmd.data = 0
         
-        euler = euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])
-        target = np.array([
-            msg.pose.pose.position.x, 
-            msg.pose.pose.position.y, 
-            msg.pose.pose.position.z, 
-            euler[0], 
-            euler[1], 
-            euler[2]
-        ]) - np.array(self.setpoint)
+        # Get difference to setpoint
+        target = get_pose_diff(self.setpoint, odometry2pose(msg))
         
-        pose = np.array([
-            target[0], 
-            target[1], 
-            target[2],
-            target[3],
-            target[4],
-            target[5]
-        ])
+        # Transform to euler coordinates
+        euler = euler_from_quaternion([target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w])
+        pose = np.array([target.position.x, target.position.y, target.position.z, euler[0], euler[1], euler[2]])
         
-        for i in range(6):
+        # Update PID controllers
+        control = np.zeros(6)
+        for i in range(6):            
+            control[i] = self.controller[i](pose[i])
+        u = np.array(control)
+        u[0:3] = vector_rotate_quaternion(u[0:3], odometry2array(msg)[3:])
+        
+        for i, f in enumerate(u):
             # Skip roll and pitch control
             if i == 3 or i == 4: continue
             
-            tmp = stepify(self.controller[i](pose[i]))
+            tmp = stepify(f)
             if tmp != 0:
                 cmd.data |= flags[2 * i + (1 if tmp < 0 else 0)]
         
+        
+        # Send thruster command
         if self.verbose > 0: self.get_logger().info('{0:08b}'.format(cmd.data))
         self.publisher.publish(cmd)
         
-        
+        # Publish debug messages
         if self.verbose > 1:
             cmd = '{0:08b}'.format(cmd.data)
             
             tmp = Vector3()
-            tmp.x = self.setpoint[0]
-            tmp.y = self.setpoint[1]
-            tmp.z = self.setpoint[2]
+            tmp.x = self.setpoint.position.x
+            tmp.y = self.setpoint.position.y
+            tmp.z = self.setpoint.position.z
             self.debug_setpoint_xyz.publish(tmp)
             
             tmp = Vector3()
-            tmp.x = self.setpoint[3] * 180 / np.pi
-            tmp.y = self.setpoint[4] * 180 / np.pi
-            tmp.z = self.setpoint[5] * 180 / np.pi
+            euler = euler_from_quaternion([self.setpoint.orientation.x, self.setpoint.orientation.y, self.setpoint.orientation.z, self.setpoint.orientation.w])
+            tmp.x = euler[0] * 180 / np.pi
+            tmp.y = euler[1] * 180 / np.pi
+            tmp.z = euler[2] * 180 / np.pi
             self.debug_setpoint_rpy.publish(tmp)
             
             tmp = Vector3()
@@ -130,13 +134,18 @@ class Odometry2TF(Node):
             tmp.z = 1.0 if cmd[6] == '1' else (-1.0 if cmd[7] == '1' else 0.0)
             self.debug_cmd_rpy.publish(tmp)           
 
-    def set_setpoint(self, msg):
-        self.setpoint = [msg.linear.x, msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y, msg.angular.z]
-    
+    def set_setpoint(self, msg: Pose):
+        # self.setpoint = [msg.position.x, msg.position.y, msg.position.z] + euler_from_quaternion([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w])
+
+        # for i, pid in zip(self.setpoint, self.controller):
+        #     pid.setpoint = i
+        
+        self.setpoint = msg
+        
 
 def main(args=None):
     rclpy.init(args=args)
-    node = Odometry2TF()
+    node = PIDController()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
