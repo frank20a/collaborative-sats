@@ -8,20 +8,16 @@ from rclpy.qos import QoSPresetProfiles
 
 import numpy as np
 
-# Flags
-POS_X = 0b00000001
-NEG_X = 0b00000010
-POS_Y = 0b00000100
-NEG_Y = 0b00001000
-POS_Z = 0b00010000
-NEG_Z = 0b00100000
-POS_YAW = 0b01000000
-NEG_YAW = 0b10000000
+from .parameters import force, torque
+from .flags import *
 
 
 class ThrustController(Node):
     def __init__(self):
         super().__init__('thrust_controller')
+        
+        self.declare_parameter('verbose', 0)
+        self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         
         self.create_subscription(Int16, 'thrust_cmd', self.callback, QoSPresetProfiles.get_from_short_key('system_default'))
         
@@ -29,13 +25,17 @@ class ThrustController(Node):
         
     def callback(self, flag):
         flag = flag.data
+        if self.verbose > 0: 
+            self.get_logger().info('{0:012b}'.format(flag))
         
         req = Wrench()
         
-        req.force.x = 2e0 * (1 if flag & POS_X else (-1 if flag & NEG_X else 0))
-        req.force.y = 2e0 * (1 if flag & POS_Y else (-1 if flag & NEG_Y else 0))
-        req.force.z = 2e0 * (1 if flag & POS_Z else (-1 if flag & NEG_Z else 0))
-        req.torque.z = 5e-2 * (1 if flag & POS_YAW else (-1 if flag & NEG_YAW else 0))
+        req.force.x = force * (1 if flag & POS_X else (-1 if flag & NEG_X else 0))
+        req.force.y = force * (1 if flag & POS_Y else (-1 if flag & NEG_Y else 0))
+        req.force.z = force * (1 if flag & POS_Z else (-1 if flag & NEG_Z else 0))
+        req.torque.x = torque * (1 if flag & POS_ROLL else (-1 if flag & NEG_ROLL else 0))
+        req.torque.y = torque * (1 if flag & POS_PITCH else (-1 if flag & NEG_PITCH else 0))
+        req.torque.z = torque * (1 if flag & POS_YAW else (-1 if flag & NEG_YAW else 0))
         
         self.pub.publish(req)
 

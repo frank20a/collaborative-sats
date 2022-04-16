@@ -25,9 +25,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'thrust = ' + package_name + '.thrust:main',
+            'thruster = ' + package_name + '.thruster:main',
             'key_teleop = ' + package_name + '.key_teleop:main',
             'pid_controller = ' + package_name + '.pid_controller:main',
+            'thruster_pwm = ' + package_name + '.thruster_pwm:main',
         ],
     },
 )

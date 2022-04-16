@@ -10,8 +10,8 @@ def generate_launch_description():
             package = 'control',
             executable =  'pid_controller',
             parameters=[{
-                'thruster_type': 'onoff',
-                'verbose': 1,
+                'thruster_type': 'pwm',
+                'verbose': 2,
             }]
         )
     )
@@ -19,9 +19,9 @@ def generate_launch_description():
     ld.add_entity(
         Node(
             package = 'control',
-            executable =  'thruster',
+            executable =  'thruster_pwm',
             parameters=[{
-                'verbose': 1,
+                'verbose': 2,
             }]
         )
     )
