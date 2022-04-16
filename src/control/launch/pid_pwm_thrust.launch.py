@@ -12,7 +12,8 @@ def generate_launch_description():
             parameters=[{
                 'thruster_type': 'pwm',
                 'verbose': 2,
-            }]
+            }],
+            namespace = 'chaser_0',
         )
     )
     
@@ -22,7 +23,8 @@ def generate_launch_description():
             executable =  'thruster_pwm',
             parameters=[{
                 'verbose': 2,
-            }]
+            }],
+            namespace = 'chaser_0',
         )
     )
     

@@ -12,7 +12,8 @@ def generate_launch_description():
             parameters=[{
                 'thruster_type': 'onoff',
                 'verbose': 1,
-            }]
+            }],
+            namespace = 'chaser_0',
         )
     )
     
@@ -22,7 +23,8 @@ def generate_launch_description():
             executable =  'thruster',
             parameters=[{
                 'verbose': 1,
-            }]
+            }],
+            namespace = 'chaser_0',
         )
     )
     

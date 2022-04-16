@@ -4,15 +4,7 @@ from std_msgs.msg import Int16
 from rclpy.qos import QoSPresetProfiles
 from pynput import keyboard
 
-# Flags
-POS_X = 0b00000001
-NEG_X = 0b00000010
-POS_Y = 0b00000100
-NEG_Y = 0b00001000
-POS_Z = 0b00010000
-NEG_Z = 0b00100000
-POS_YAW = 0b01000000
-NEG_YAW = 0b10000000
+from .flags import *
 
 
 class KeyTeleop(Node):

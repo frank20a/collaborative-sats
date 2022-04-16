@@ -26,12 +26,8 @@ class PIDController(Node):
     def __init__(self):
         super().__init__('pid')
         self.declare_parameter('verbose', 0)
-        self.declare_parameter('thruster_type', 'onoff')
-        self.declare_parameter('limit', 7.5)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
-        self.thruster_type = self.get_parameter('thruster_type').get_parameter_value().string_value
-        self.mul = self.get_parameter('limit').get_parameter_value().double_value
         
         self.setpoint = Pose()
         self.setpoint.position.x = -1.0
@@ -42,11 +38,6 @@ class PIDController(Node):
         self.setpoint.orientation.y = q[1]
         self.setpoint.orientation.z = q[2]
         self.setpoint.orientation.w = q[3]
-        # self.set_setpoint(self.setpoint)
-        
-        self.controller = []
-        self.controller = self.controller + [PID(80, 10, 180, output_limits=(-self.mul, self.mul), sample_time=1/30.0) for i in range(3)]     # x, y, z
-        self.controller = self.controller + [PID(75, 15, 150, output_limits=(-self.mul, self.mul), sample_time=1/30.0) for i in range(3)]     # roll, pitch, yaw
 
         self.create_subscription(
             Pose,
@@ -83,34 +74,6 @@ class PIDController(Node):
         euler = euler_from_quaternion([target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w])
         pose = np.array([target.position.x, target.position.y, target.position.z, euler[0], euler[1], euler[2]])
         
-        # Update PID controllers
-        control = np.zeros(6)
-        for i in range(6):            
-            control[i] = self.controller[i](pose[i]) / self.mul
-        u = np.array(control)
-        u[0:3] = vector_rotate_quaternion(u[0:3], quaternion_inverse(odometry2array(msg)[3:]))
-        
-        if self.thruster_type == 'onoff':
-            cmd = Int16()
-            cmd.data = 0
-            for i, f in enumerate(u):
-                # Skip roll and pitch control
-                if i == 3 or i == 4: continue
-                
-                tmp = stepify(f)
-                if tmp != 0:
-                    cmd.data |= flags[2 * i + (1 if tmp < 0 else 0)]
-            
-        elif self.thruster_type == 'pwm':
-            cmd = Wrench()
-            cmd.force.x = u[0]
-            cmd.force.y = u[1]
-            cmd.force.z = u[2]
-            cmd.torque.x = u[3]
-            cmd.torque.y = u[4]
-            cmd.torque.z = u[5]
-            
-        self.publisher.publish(cmd)
         
         # Publish debug messages
         if self.verbose > 1:

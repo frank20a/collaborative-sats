@@ -9,13 +9,15 @@ def generate_launch_description():
         Node(
             package = 'control',
             executable =  'key_teleop',
+            namespace = 'chaser_0',
         )
     )
     
     ld.add_entity(
         Node(
             package = 'control',
-            executable =  'thrust',
+            executable =  'thruster',
+            namespace = 'chaser_0',
         )
     )
     

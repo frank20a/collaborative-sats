@@ -33,7 +33,7 @@ class ThrustController(Node):
         self.i = 0
         
         self.create_subscription(Wrench, 'thrust_cmd', self.callback, QoSPresetProfiles.get_from_short_key('system_default'))
-        self.pub = self.create_publisher(Wrench, 'chaser_0/gazebo_ros_force', QoSPresetProfiles.get_from_short_key('system_default'))
+        self.pub = self.create_publisher(Wrench, 'gazebo_ros_force', QoSPresetProfiles.get_from_short_key('system_default'))
         self.create_timer(1/(self.frequency * self.resolution), self.send_signals)
         if self.verbose > 1: 
             self.debug_cmd_xyz = self.create_publisher(Vector3, 'debug/cmd_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))

@@ -21,7 +21,7 @@ class ThrustController(Node):
         
         self.create_subscription(Int16, 'thrust_cmd', self.callback, QoSPresetProfiles.get_from_short_key('system_default'))
         
-        self.pub = self.create_publisher(Wrench, 'chaser_0/gazebo_ros_force', QoSPresetProfiles.get_from_short_key('system_default'))
+        self.pub = self.create_publisher(Wrench, 'gazebo_ros_force', QoSPresetProfiles.get_from_short_key('system_default'))
         
     def callback(self, flag):
         flag = flag.data
