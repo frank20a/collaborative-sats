@@ -5,3 +5,4 @@ notes.txt
 launch files notes.txt
 __pycache__/
 .vscode/
+python_build/

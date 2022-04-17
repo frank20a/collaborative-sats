@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from ament_index_python import get_package_share_directory
 from std_msgs.msg import Int16
 from geometry_msgs.msg import Vector3, Pose, Wrench
 from nav_msgs.msg import Odometry
@@ -8,26 +9,29 @@ from tf_transformations import euler_from_quaternion, quaternion_from_euler, qua
 from .tf_utils import get_pose_diff, odometry2array, odometry2pose, vector_rotate_quaternion
 
 import numpy as np
-from simple_pid import PID
+import casadi.casadi as cs
+import opengen as og
+import os, sys
 
 from .flags import *
 
 
-def stepify(x, up_thresh = 0.25, down_thresh = None):
-    if down_thresh is None:
-        down_thresh = -up_thresh
-    
-    if x > up_thresh: return 1
-    if x < down_thresh: return -1
-    return 0
-
-
-class PIDController(Node):
+class MPCController(Node):
     def __init__(self):
-        super().__init__('pid')
+        super().__init__('mpc')
         self.declare_parameter('verbose', 0)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
+        
+        
+        sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/chaser_mpc'))
+        import chaser_mpc
+        
+        self.solver = chaser_mpc.solver()
+        
+        resp = self.solver.run(p=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.get_logger().info('Initial response: {}'.format(resp.solution))
+            
         
         self.setpoint = Pose()
         self.setpoint.position.x = -1.0
@@ -52,10 +56,10 @@ class PIDController(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        if self.thruster_type == 'onoff':
-            self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
-        elif self.thruster_type == 'pwm':
-            self.publisher = self.create_publisher(Wrench, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
+        # if self.thruster_type == 'onoff':
+        #     self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
+        # elif self.thruster_type == 'pwm':
+        #     self.publisher = self.create_publisher(Wrench, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
             
         
         if self.verbose > 1:
@@ -90,19 +94,6 @@ class PIDController(Node):
             tmp.y = euler[1] * 180 / np.pi
             tmp.z = euler[2] * 180 / np.pi
             self.debug_setpoint_rpy.publish(tmp)
-            
-            if self.thruster_type == 'onoff':
-                cmd = '{0:012b}'.format(cmd.data)
-                tmp = Vector3()
-                tmp.x = 1.0 if cmd[0] == '1' else (-1.0 if cmd[1] == '1' else 0.0)
-                tmp.y = 1.0 if cmd[2] == '1' else (-1.0 if cmd[3] == '1' else 0.0)
-                tmp.z = 1.0 if cmd[4] == '1' else (-1.0 if cmd[5] == '1' else 0.0)
-                self.debug_cmd_xyz.publish(tmp)
-                
-                tmp = Vector3()
-                tmp.x = 1.0 if cmd[6] == '1' else (-1.0 if cmd[7] == '1' else 0.0)
-                tmp.y = 1.0 if cmd[8] == '1' else (-1.0 if cmd[9] == '1' else 0.0)
-                tmp.z = 1.0 if cmd[10] == '1' else (-1.0 if cmd[11] == '1' else 0.0)
 
     def set_setpoint(self, msg: Pose):
         self.setpoint = msg
@@ -110,7 +101,7 @@ class PIDController(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = PIDController()
+    node = MPCController()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

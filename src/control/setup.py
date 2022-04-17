@@ -27,8 +27,9 @@ setup(
         'console_scripts': [
             'thruster = ' + package_name + '.thruster:main',
             'key_teleop = ' + package_name + '.key_teleop:main',
-            'pid_controller = ' + package_name + '.pid_controller:main',
+            'pid = ' + package_name + '.pid_controller:main',
             'thruster_pwm = ' + package_name + '.thruster_pwm:main',
+            'mpc = ' + package_name + '.mpc_controller:main',
         ],
     },
 )
