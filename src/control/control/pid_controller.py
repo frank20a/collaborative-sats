@@ -11,6 +11,7 @@ import numpy as np
 from simple_pid import PID
 
 from .flags import *
+from .parameters import dt
 
 
 def stepify(x, up_thresh = 0.25, down_thresh = None):
@@ -45,8 +46,8 @@ class PIDController(Node):
         # self.set_setpoint(self.setpoint)
         
         self.controller = []
-        self.controller = self.controller + [PID(80, 10, 180, output_limits=(-self.mul, self.mul), sample_time=1/30.0) for i in range(3)]     # x, y, z
-        self.controller = self.controller + [PID(75, 15, 150, output_limits=(-self.mul, self.mul), sample_time=1/30.0) for i in range(3)]     # roll, pitch, yaw
+        self.controller = self.controller + [PID(80, 10, 180, output_limits=(-self.mul, self.mul), sample_time=dt) for i in range(3)]     # x, y, z
+        self.controller = self.controller + [PID(75, 15, 150, output_limits=(-self.mul, self.mul), sample_time=dt) for i in range(3)]     # roll, pitch, yaw
 
         self.create_subscription(
             Pose,
