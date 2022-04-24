@@ -1,9 +1,10 @@
+from this import d
 from .tf2_geometry_msgs import *
+from tf_transformations import *
 
 from geometry_msgs.msg import Pose, TransformStamped, Quaternion
 from nav_msgs.msg import Odometry
 import numpy as np
-from tf_transformations import quaternion_inverse, quaternion_multiply
 
 
 def get_pose_diff(target: Pose, pose: Pose) -> Pose:
@@ -80,3 +81,37 @@ def vector_rotate_quaternion(v, q):
 def odometry2array(odom: Odometry) -> np.ndarray:
     pose = odometry2pose(odom)
     return np.array([pose.position.x, pose.position.y, pose.position.z, pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
+
+
+def odometry2state(odom: Odometry) -> np.ndarray:
+    pose = odometry2pose(odom)
+    eul = euler_from_quaternion([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
+    return np.array([
+        pose.position.x,
+        pose.position.y,
+        pose.position.z,
+        odom.twist.twist.linear.x,
+        odom.twist.twist.linear.y,
+        odom.twist.twist.linear.z,
+        0,
+        0,
+        0,
+        eul[0],
+        eul[1],
+        eul[2],
+        odom.twist.twist.angular.x,
+        odom.twist.twist.angular.y,
+        odom.twist.twist.angular.z,
+        0,
+        0,
+        0
+    ], dtype=np.float32)
+
+
+def pose2array(pose: Pose) -> np.ndarray:
+    return np.array([pose.position.x, pose.position.y, pose.position.z, pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
+
+
+def pose2array_euler(pose: Pose) -> np.ndarray:
+    eul = euler_from_quaternion([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
+    return np.array([pose.position.x, pose.position.y, pose.position.z, eul[0], eul[1], eul[2]])
