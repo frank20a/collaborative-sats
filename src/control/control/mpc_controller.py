@@ -1,16 +1,15 @@
+from pandas import Int16Dtype
 import rclpy
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
+from geometry_msgs.msg import Vector3, Pose
 from std_msgs.msg import Int16
-from geometry_msgs.msg import Vector3, Pose, Wrench
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
-from tf_transformations import euler_from_quaternion, quaternion_from_euler, quaternion_inverse
-from .tf_utils import get_pose_diff, odometry2array, odometry2pose, vector_rotate_quaternion
+from tf_transformations import euler_from_quaternion, quaternion_from_euler
+from .tf_utils import odometry2state, pose2array, odometry2pose, get_pose_diff, pose2array_euler, vector_rotate_quaternion, quaternion_inverse, odometry2array
 
 import numpy as np
-import casadi.casadi as cs
-import opengen as og
 import os, sys
 
 from .flags import *
@@ -23,21 +22,16 @@ class MPCController(Node):
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         
-        
         sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/chaser_mpc'))
         import chaser_mpc
         
-        self.solver = chaser_mpc.solver()
-        
-        resp = self.solver.run(p=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.get_logger().info('Initial response: {}'.format(resp.solution))
-            
+        self.solver = chaser_mpc.solver()            
         
         self.setpoint = Pose()
         self.setpoint.position.x = -1.0
         self.setpoint.position.y = -1.0
-        self.setpoint.position.z = 0.75
-        q = quaternion_from_euler(0.0, 0.0, np.pi)
+        self.setpoint.position.z = 1.0
+        q = quaternion_from_euler(0.0, 0.0, 0.0)
         self.setpoint.orientation.x = q[0]
         self.setpoint.orientation.y = q[1]
         self.setpoint.orientation.z = q[2]
@@ -56,18 +50,15 @@ class MPCController(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
-        # if self.thruster_type == 'onoff':
-        #     self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
-        # elif self.thruster_type == 'pwm':
-        #     self.publisher = self.create_publisher(Wrench, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
+        
+        self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
             
         
         if self.verbose > 1:
             self.debug_setpoint_xyz = self.create_publisher(Vector3, 'debug/setpoint_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
             self.debug_setpoint_rpy = self.create_publisher(Vector3, 'debug/setpoint_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
-            if self.thruster_type == 'onoff':
-                self.debug_cmd_xyz = self.create_publisher(Vector3, 'debug/cmd_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
-                self.debug_cmd_rpy = self.create_publisher(Vector3, 'debug/cmd_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
+            self.debug_cmd_xyz = self.create_publisher(Vector3, 'debug/cmd_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
+            self.debug_cmd_rpy = self.create_publisher(Vector3, 'debug/cmd_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
 
     def callback(self, msg: Odometry):
         
@@ -75,9 +66,30 @@ class MPCController(Node):
         target = get_pose_diff(self.setpoint, odometry2pose(msg))
         
         # Transform to euler coordinates
-        euler = euler_from_quaternion([target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w])
-        pose = np.array([target.position.x, target.position.y, target.position.z, euler[0], euler[1], euler[2]])
+        pose = pose2array_euler(target)
+        state = odometry2state(msg)
+        state[0:3] = pose[0:3]
+        state[9:12] = pose[3:6]
         
+        # Call the optimizer
+        resp = self.solver.run(p=state)
+        # self.get_logger().info('Response: {}'.format(resp.solution))
+        u = np.array(resp.solution)[:6]
+        # self.get_logger().info(str(u))
+        # return
+        
+        # Rotate the thrust vector to remove body frame orientation
+        u[0:3] = vector_rotate_quaternion(u[0:3], quaternion_inverse(odometry2array(msg)[3:]))
+        
+        cmd = Int16()
+        cmd.data = 0
+        for i, f in enumerate(u):
+            # Skip roll and pitch control
+            if i == 3 or i == 4: continue
+            
+            if f != 0:
+                cmd.data |= flags[2 * i + (1 if f < 0 else 0)]
+        self.publisher.publish(cmd)
         
         # Publish debug messages
         if self.verbose > 1:
