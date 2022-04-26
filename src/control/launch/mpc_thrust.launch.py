@@ -19,7 +19,7 @@ def generate_launch_description():
     ld.add_entity(
         Node(
             package = 'control',
-            executable =  'thruster',
+            executable =  'thruster_pwm',
             parameters=[{
                 'verbose': 2,
             }],

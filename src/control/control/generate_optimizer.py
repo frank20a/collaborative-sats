@@ -1,5 +1,5 @@
 from ament_index_python import get_package_share_directory
-from tf_utils_symbolic import vector_rotate_quaternion, euler_from_quaternion
+from tf_utils_symbolic import matrix_from_euler
 
 import opengen as og
 import casadi.casadi as cs
@@ -15,7 +15,7 @@ cost = 0
 x = p
 for i in range(mpc_horizon):
     # Rotate forces vector to robot orientation
-    # rot_force = vector_rotate_quaternion(u[i * control_dim: i * control_dim + 3], p[9:13])
+    # rot_force = matrix_from_euler(x[3:6]) @ u[i * control_dim: i * control_dim + 3]
     
     # System dynamics
     # x_ = A_@x + B_@ cs.vertcat(rot_force, u[i * control_dim + 3:i * control_dim + 6])
@@ -23,20 +23,24 @@ for i in range(mpc_horizon):
     y  = C_@x + D_@u[i * control_dim: (i+1) * control_dim]
     
     # Update cost function
-    for i in range(6):
-        cost += mpc_cost_weights[i] * y[i]**2
+    for j in range(6):
+        cost += mpc_cost_weights[j] * y[j]**2
+        
     
     # Move to next time step
     x = x_
 
 
 # Bound control outputs to fixed force and torque values
-valsF = [og.constraints.FiniteSet([[-force], [0], [force]])] * 3
-valsT = [og.constraints.FiniteSet([[-torque], [0], [torque]])] * 3
-bounds = og.constraints.CartesianProduct(
-    range(control_dim * mpc_horizon), 
-    (valsF + valsT) * mpc_horizon
-)
+# valsF = [og.constraints.FiniteSet([[-force], [0], [force]])] * 3
+# valsT = [og.constraints.FiniteSet([[-torque], [0], [torque]])] * 3
+# bounds = og.constraints.CartesianProduct(
+#     range(control_dim * mpc_horizon), 
+#     (valsF + valsT) * mpc_horizon
+# )
+umax = [force, force, force, torque, torque, torque] * mpc_horizon
+umin = [-force, -force, -force, -torque, -torque, -torque] * mpc_horizon
+bounds = og.constraints.Rectangle(umin, umax)
 
 
 problem = og.builder.Problem(u, p, cost)     \
@@ -59,12 +63,12 @@ build_config = og.config.BuildConfiguration()       \
 
 
 solver_config = og.config.SolverConfiguration()     \
-    .with_lbfgs_memory(20)                          \
-    .with_tolerance(1e-6)                           \
+    .with_lbfgs_memory(64)                          \
+    .with_tolerance(1e-5)                           \
     .with_max_inner_iterations(155)                 \
-    .with_penalty_weight_update_factor(150)           \
-    .with_max_outer_iterations(10)                 \
-    .with_initial_penalty(10000000.0)                   \
+    .with_max_outer_iterations(5)                 \
+    # .with_penalty_weight_update_factor(150)           \
+    # .with_initial_penalty(1000.0)                   \
 
 
 builder = og.builder.OpEnOptimizerBuilder(problem,

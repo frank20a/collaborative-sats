@@ -3,7 +3,7 @@ import casadi as cs
 
 force = 2.0
 torque = 5e-2
-dt = 1/30.0
+dt = 1.0/5
 m = 30.0
 
 # I = np.diag([30 * (0.25**2 + 0.05**2) / 12, 30 * (0.25**2 + 0.05**2) / 12, 30 * (0.25**2 + 0.25**2) / 12])
@@ -54,7 +54,8 @@ C_[3:6, 9:12] = cs.SX.eye(3)
 # D = np.zeros((6, 6))
 D_ = cs.SX(6, 6)
 
-mpc_horizon = 75
+mpc_horizon = 30
 control_dim = 6
 n_states = 18
-mpc_cost_weights = [1000000, 100000, 100000, 50, 50, 50]
+mpc_cost_weights = [1e14, 1e14, 1e14, 5e8, 5e8, 5e8]
+# mpc_cost_weights = [1e3, 1e3, 1e3, 5, 5, 5]

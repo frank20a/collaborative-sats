@@ -2,7 +2,7 @@ from pandas import Int16Dtype
 import rclpy
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
-from geometry_msgs.msg import Vector3, Pose
+from geometry_msgs.msg import Vector3, Pose, Wrench
 from std_msgs.msg import Int16
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
@@ -13,6 +13,7 @@ import numpy as np
 import os, sys
 
 from .flags import *
+from .parameters import force, torque
 
 
 class MPCController(Node):
@@ -51,8 +52,9 @@ class MPCController(Node):
         )
         
         
-        self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
-            
+        # self.publisher = self.create_publisher(Int16, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
+        self.publisher = self.create_publisher(Wrench, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
+        
         
         if self.verbose > 1:
             self.debug_setpoint_xyz = self.create_publisher(Vector3, 'debug/setpoint_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
@@ -73,7 +75,7 @@ class MPCController(Node):
         
         # Call the optimizer
         resp = self.solver.run(p=state)
-        # self.get_logger().info('Response: {}'.format(resp.solution))
+        # self.get_logger().info('Response: {}'.format(resp.solution[:6]))
         u = np.array(resp.solution)[:6]
         # self.get_logger().info(str(u))
         # return
@@ -81,14 +83,23 @@ class MPCController(Node):
         # Rotate the thrust vector to remove body frame orientation
         u[0:3] = vector_rotate_quaternion(u[0:3], quaternion_inverse(odometry2array(msg)[3:]))
         
-        cmd = Int16()
-        cmd.data = 0
-        for i, f in enumerate(u):
-            # Skip roll and pitch control
-            if i == 3 or i == 4: continue
+        # cmd = Int16()
+        # cmd.data = 0
+        # for i, f in enumerate(u):
+        #     # Skip roll and pitch control
+        #     if i == 3 or i == 4: continue
             
-            if f != 0:
-                cmd.data |= flags[2 * i + (1 if f < 0 else 0)]
+        #     if f != 0:
+        #         cmd.data |= flags[2 * i + (1 if f < 0 else 0)]
+        
+        cmd = Wrench()
+        cmd.force.x = u[0] / force
+        cmd.force.y = u[1] / force
+        cmd.force.z = u[2] / force
+        cmd.torque.x = u[3] / torque
+        cmd.torque.y = u[4] / torque
+        cmd.torque.z = u[5] / torque
+        
         self.publisher.publish(cmd)
         
         # Publish debug messages
