@@ -14,8 +14,11 @@
 
   <exec_depend>simple-pid</exec_depend>
   <exec_depend>numpy</exec_depend>
-  <exec_depend>opengen</exec_depend>
   <exec_depend>casadi</exec_depend>
+  <exec_depend>pandas</exec_depend>
+
+  <build_depend>opengen</exec_depend>
+  <build_depend>cargo</build_depend>
 
   <export>
     <build_type>ament_python</build_type>
