@@ -25,6 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'lock_target = ' + package_name + '.lock_target:main',
         ],
     },
 )

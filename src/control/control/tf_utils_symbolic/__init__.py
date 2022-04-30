@@ -42,4 +42,4 @@ def matrix_from_euler(eul):
     Rx[2, 1] = cs.sin(eul[0])
     Rx[2, 2] = cs.cos(eul[0])
     
-    return Rz
+    return Rz @ Ry @ Rz
