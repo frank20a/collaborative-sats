@@ -2,12 +2,12 @@ from pandas import Int16Dtype
 import rclpy
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
-from geometry_msgs.msg import Vector3, Pose, Wrench
+from geometry_msgs.msg import Vector3, Pose, Wrench, Twist
 from std_msgs.msg import Int16
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
-from .tf_utils import odometry2state, pose2array, odometry2pose, get_pose_diff, pose2array_euler, vector_rotate_quaternion, quaternion_inverse, odometry2array
+from .tf_utils import odometry2pose, get_pose_diff, vector_rotate_quaternion, quaternion_inverse, odometry2array, get_state
 
 import numpy as np
 import os, sys
@@ -63,20 +63,18 @@ class MPCController(Node):
             self.debug_cmd_rpy = self.create_publisher(Vector3, 'debug/cmd_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
 
     def callback(self, msg: Odometry):
-        
-        # Get difference to setpoint
-        target = get_pose_diff(self.setpoint, odometry2pose(msg))
-        
-        # Transform to euler coordinates
-        pose = pose2array_euler(target)
-        state = odometry2state(msg)
-        state[0:3] = pose[0:3]
-        state[9:12] = pose[3:6]
+                
+        # Get state for optimizer
+        state = get_state(self.setpoint, msg)
         
         # Call the optimizer
         resp = self.solver.run(p=state)
         # self.get_logger().info('Response: {}'.format(resp.solution[:6]))
-        u = np.array(resp.solution)[:6]
+        try:
+            u = np.array(resp.solution)[:6]
+        except AttributeError:
+            self.get_logger().error("No Solution")
+            return
         # self.get_logger().info(str(u))
         # return
         

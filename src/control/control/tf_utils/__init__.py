@@ -85,7 +85,7 @@ def odometry2array(odom: Odometry) -> np.ndarray:
 
 def odometry2state(odom: Odometry) -> np.ndarray:
     pose = odometry2pose(odom)
-    eul = euler_from_quaternion([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
+    
     return np.array([
         pose.position.x,
         pose.position.y,
@@ -93,18 +93,13 @@ def odometry2state(odom: Odometry) -> np.ndarray:
         odom.twist.twist.linear.x,
         odom.twist.twist.linear.y,
         odom.twist.twist.linear.z,
-        0,
-        0,
-        0,
-        eul[0],
-        eul[1],
-        eul[2],
+        pose.orientation.x,
+        pose.orientation.y,
+        pose.orientation.z,
+        pose.orientation.w,
         odom.twist.twist.angular.x,
         odom.twist.twist.angular.y,
         odom.twist.twist.angular.z,
-        0,
-        0,
-        0
     ], dtype=np.float32)
 
 
@@ -115,3 +110,25 @@ def pose2array(pose: Pose) -> np.ndarray:
 def pose2array_euler(pose: Pose) -> np.ndarray:
     eul = euler_from_quaternion([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
     return np.array([pose.position.x, pose.position.y, pose.position.z, eul[0], eul[1], eul[2]])
+
+
+# Temporary until difference includeds Twist too... for now zero target twist is assumed
+def get_state(target: Pose, odom: Odometry) -> np.ndarray:
+    
+    diff = get_pose_diff(target, odometry2pose(odom))
+
+    return np.array([
+        diff.position.x,
+        diff.position.y,
+        diff.position.z,
+        odom.twist.twist.linear.x,
+        odom.twist.twist.linear.y,
+        odom.twist.twist.linear.z,
+        diff.orientation.x,
+        diff.orientation.y,
+        diff.orientation.z,
+        diff.orientation.w,
+        odom.twist.twist.angular.x,
+        odom.twist.twist.angular.y,
+        odom.twist.twist.angular.z,
+    ], dtype=np.float32)

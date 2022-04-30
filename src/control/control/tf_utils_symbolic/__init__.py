@@ -1,11 +1,11 @@
 from .quaternions import *
 import casadi as cs
-import numpy as np
 
 
 def vector_rotate_quaternion(v, q):
     res = cs.SX(4, 1)
     res[0:3] = v
+    res[3] = 0
     
     res = quaternion_multiply(
         q,
@@ -14,7 +14,7 @@ def vector_rotate_quaternion(v, q):
     
     res = quaternion_multiply(
         res,
-        quaternion_inverse(q)
+        quaternion_conjugate(q)
     )
     
     return res[0:3]
