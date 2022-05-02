@@ -113,21 +113,19 @@ def pose2array_euler(pose: Pose) -> np.ndarray:
 
 
 # Temporary until difference includeds Twist too... for now zero target twist is assumed
-def get_state(target: Pose, odom: Odometry) -> np.ndarray:
-    
-    diff = get_pose_diff(target, odometry2pose(odom))
+def get_state(odom: Odometry) -> np.ndarray:
 
     return np.array([
-        diff.position.x,
-        diff.position.y,
-        diff.position.z,
+        odom.pose.pose.position.x,
+        odom.pose.pose.position.y,
+        odom.pose.pose.position.z,
         odom.twist.twist.linear.x,
         odom.twist.twist.linear.y,
         odom.twist.twist.linear.z,
-        diff.orientation.x,
-        diff.orientation.y,
-        diff.orientation.z,
-        diff.orientation.w,
+        odom.pose.pose.orientation.x,
+        odom.pose.pose.orientation.y,
+        odom.pose.pose.orientation.z,
+        odom.pose.pose.orientation.w,
         odom.twist.twist.angular.x,
         odom.twist.twist.angular.y,
         odom.twist.twist.angular.z,
