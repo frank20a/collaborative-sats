@@ -1,43 +1,125 @@
 from ament_index_python import get_package_share_directory
-from tf_utils_symbolic import matrix_from_euler
+from tf_utils_symbolic import quaternion_multiply, quaternion_norm, euler_from_quaternion, quaternion_inverse, vector_rotate_quaternion
 
 import opengen as og
 import casadi.casadi as cs
 import os
 
-from parameters import *
+from parameters import force, torque, dt, m, Icm, nu, nx, mpc_horizon
 
 
-u = cs.SX.sym('u', control_dim * mpc_horizon)   # Control Output Fx, Fy, Fz, Tx, Ty, Tz
-p = cs.SX.sym('p', n_states)                    # Parameters are model state [x, y, z, roll, pitch, yaw], their velocity and acceleration
-cost = 0
+def dynamics_ct(x, u):
+    dx = cs.SX(nx, 1)
 
-x = p
-for i in range(mpc_horizon):
-    # Rotate forces vector to robot orientation
-    # rot_force = matrix_from_euler(x[3:6]) @ u[i * control_dim: i * control_dim + 3]
+    # dx0 = x,        dx1 = y,        dx2 = z,
+    # dx3 = x_dot,    dx4 = y_dot,    dx5 = z_dot,
+    # dx6 = qx,       dx7 = qy,       dx8 = qz,       dx9 = qw,
+    # dx10= wx,       dx11= wy,       dx12= wz
+
+    # u0 = Fx,        u1 = Fy,        u2 = Fz
+    # u3 = Tx,        u4 = Ty,        u5 = Tz
+
+    # Position
+    dx[0] = x[3]
+    dx[1] = x[4]
+    dx[2] = x[5]
+
+    # Velocity
+    dx[3:6] = vector_rotate_quaternion(u[0:3], x[6:10]) / m
+
+    # Quaternion
+    dx[6:10] = quaternion_multiply(
+        [x[10], x[11], x[12], 0],
+        x[6:10],
+    ) / 2.0
+
+    # Omega
+    dx[10:13] = cs.inv(Icm) @ vector_rotate_quaternion(u[3:6], x[6:10]) - cs.inv(Icm) @ cs.cross(x[10:13], Icm @ x[10:13])
+
+    return dx
+
+
+def dynamics_dt(x, u):
+    dx = dynamics_ct(x, u)
+
+    x_ = cs.SX(nx, 1)
+    for i in range(nx):
+        x_[i] = x[i] + dt * dx[i]
+
+    x_[6:10] = x_[6:10] / quaternion_norm(x_[6:10])
+
+    return x_
+
+
+def stage_cost(x, ref, u, Qs, Qi):
+    cost = 0
+
+    # ======== State cost ========
+    # position
+    for i in range(3): cost += Qs[0] * ((x[i] - ref[i])**2)
+
+    # velocity
+    for i in range(3, 6): cost += Qs[1] * ((x[i] - ref[i])**2)
+
+    # orientation
+    eul = euler_from_quaternion(quaternion_multiply(
+        x[6:10],
+        quaternion_inverse(ref[6:10]),
+    ))
+    for i in range(3): cost += Qs[2] * cs.exp(eul[i]**2)
+
+    # omega
+    for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
+
+    # ======== Input cost ========
+    for j in range(nu): cost += Qi[j // 3] * (u[j]**2)
+
+    return cost
+
+
+def final_cost(x, ref, Qf):
+    cost = 0
     
-    # System dynamics
-    # x_ = A_@x + B_@ cs.vertcat(rot_force, u[i * control_dim + 3:i * control_dim + 6])
-    x_ = A_@x + B_@u[i * control_dim: (i+1) * control_dim]
-    y  = C_@x + D_@u[i * control_dim: (i+1) * control_dim]
+    # position
+    for i in range(3): cost += Qf[0] * ((x[i] - ref[i])**2)
+
+    # velocity
+    for i in range(3, 6): cost += Qf[1] * ((x[i] - ref[i])**2)
+
+    # orientation
+    eul = euler_from_quaternion(quaternion_multiply(
+        x[6:10],
+        quaternion_inverse(ref[6:10]),
+    ))
+    for i in range(3): cost += Qf[2] * eul[i]**2
+
+    # omega
+    for i in range(10, 13): cost += Qf[3] * ((x[i] - ref[i])**2)
+
+    return cost
+
+
+u = cs.SX.sym('u', nu * mpc_horizon)
+p = cs.SX.sym('p', nx*2 + 10)
+x0 = p[0:nx]
+ref = p[nx:2*nx]
+state_weights = p[2*nx:2*nx+4]
+input_weights = p[2*nx+4:2*nx+6]
+final_weights = p[2*nx+6:2*nx+10]
+
+xt = x0
+cost = 0
+for i in range(mpc_horizon):
+    ut = u[i * nu: (i+1) * nu]
     
     # Update cost function
-    for j in range(6):
-        cost += mpc_cost_weights[j] * y[j]**2
-        
+    cost += stage_cost(xt, ref, ut, state_weights, input_weights)
     
     # Move to next time step
-    x = x_
+    xt = dynamics_dt(xt, ut)
+cost += final_cost(xt, ref, final_weights)
 
-
-# Bound control outputs to fixed force and torque values
-# valsF = [og.constraints.FiniteSet([[-force], [0], [force]])] * 3
-# valsT = [og.constraints.FiniteSet([[-torque], [0], [torque]])] * 3
-# bounds = og.constraints.CartesianProduct(
-#     range(control_dim * mpc_horizon), 
-#     (valsF + valsT) * mpc_horizon
-# )
+# Bound control outputs
 umax = [force, force, force, torque, torque, torque] * mpc_horizon
 umin = [-force, -force, -force, -torque, -torque, -torque] * mpc_horizon
 bounds = og.constraints.Rectangle(umin, umax)
@@ -58,17 +140,14 @@ build_config = og.config.BuildConfiguration()       \
     .with_build_directory(os.path.join(get_package_share_directory('control'), 'python_build'))           \
     .with_build_mode('release')                     \
     .with_build_python_bindings()                   \
-    .with_rebuild(False)                             \
+    .with_rebuild(False)                            \
     # .with_tcp_interface_config()                    # IP 127.0.0.1 and port 8333
 
 
 solver_config = og.config.SolverConfiguration()     \
     .with_lbfgs_memory(64)                          \
     .with_tolerance(1e-5)                           \
-    .with_max_inner_iterations(155)                 \
-    .with_max_outer_iterations(5)                 \
-    # .with_penalty_weight_update_factor(150)           \
-    # .with_initial_penalty(1000.0)                   \
+    .with_max_inner_iterations(256)                 \
 
 
 builder = og.builder.OpEnOptimizerBuilder(problem,
