@@ -29,21 +29,33 @@ class PIDController(Node):
         self.declare_parameter('verbose', 0)
         self.declare_parameter('thruster_type', 'onoff')
         self.declare_parameter('limit', 7.5)
+        # self.declare_parameter('init_setpoint', '-1.0 0.5 0.75 0.0 0.0 -0.258819 0.9659258')
+        self.declare_parameter('init_setpoint', '')
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.thruster_type = self.get_parameter('thruster_type').get_parameter_value().string_value
         self.mul = self.get_parameter('limit').get_parameter_value().double_value
-        
+        init_setpoint = self.get_parameter('init_setpoint').get_parameter_value().string_value
+
         self.setpoint = Pose()
-        self.setpoint.position.x = -1.0
-        self.setpoint.position.y = -1.0
-        self.setpoint.position.z = 0.75
-        q = quaternion_from_euler(0.0, 0.0, np.pi)
-        self.setpoint.orientation.x = q[0]
-        self.setpoint.orientation.y = q[1]
-        self.setpoint.orientation.z = q[2]
-        self.setpoint.orientation.w = q[3]
-        # self.set_setpoint(self.setpoint)
+        if init_setpoint != '':
+            tmp = init_setpoint.split(' ')
+            self.setpoint.position.x = float(tmp[0])
+            self.setpoint.position.y = float(tmp[1])
+            self.setpoint.position.z = float(tmp[2])
+            self.setpoint.orientation.x = float(tmp[3])
+            self.setpoint.orientation.y = float(tmp[4])
+            self.setpoint.orientation.z = float(tmp[5])
+            self.setpoint.orientation.w = float(tmp[6])
+        else:
+            self.setpoint.position.x = -1.0
+            self.setpoint.position.y = -1.0
+            self.setpoint.position.z = 0.75
+            q = quaternion_from_euler(0.0, 0.0, np.pi)
+            self.setpoint.orientation.x = q[0]
+            self.setpoint.orientation.y = q[1]
+            self.setpoint.orientation.z = q[2]
+            self.setpoint.orientation.w = q[3]
         
         self.controller = []
         self.controller = self.controller + [PID(80, 10, 180, output_limits=(-self.mul, self.mul), sample_time=dt) for i in range(3)]     # x, y, z

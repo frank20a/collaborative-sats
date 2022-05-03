@@ -23,29 +23,38 @@ class MPCController(Node):
         self.declare_parameter('verbose', 0)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
+        # self.declare_parameter('init_setpoint', '-1.0 0.5 0.75 0.0 0.0 -0.258819 0.9659258')
+        self.declare_parameter('init_setpoint', '')
+        init_setpoint = self.get_parameter('init_setpoint').get_parameter_value().string_value     
         
+        if init_setpoint != '':
+            tmp = [float(i) for i in init_setpoint.split(' ')]
+            tmp = tmp[:3] + [0, 0, 0] + tmp[3:] + [0, 0, 0]
+            self.setpoint = np.array(tmp, dtype=np.float64)
+        else:
+            q = quaternion_from_euler(0.0, 0.0, pi)
+            self.setpoint = np.array([
+                -1,         # x
+                -1,         # y
+                1,          # z
+                0,          # x_dot
+                0,          # y_dot
+                0,          # z_dot 
+                q[0],       # qx
+                q[1],       # qy
+                q[2],       # qz
+                q[3],       # qw
+                0,          # wx
+                0,          # wy
+                0           # wz
+            ], dtype=np.float64)
+        
+        # Solver
         sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/chaser_mpc'))
         import chaser_mpc
-        
-        self.solver = chaser_mpc.solver()            
-        
-        q = quaternion_from_euler(0.0, 0.0, pi)
-        self.setpoint = np.array([
-            -1,         # x
-            -1,         # y
-            1,          # z
-            0,          # x_dot
-            0,          # y_dot
-            0,          # z_dot 
-            q[0],       # qx
-            q[1],       # qy
-            q[2],       # qz
-            q[3],       # qw
-            0,          # wx
-            0,          # wy
-            0           # wz
-        ], dtype=np.float64)
+        self.solver = chaser_mpc.solver()       
 
+        # Subscriptions
         self.create_subscription(
             Pose,
             'setpoint',
@@ -59,6 +68,7 @@ class MPCController(Node):
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
         
+        # Publishers
         self.publisher = self.create_publisher(Wrench, 'thrust_cmd', QoSPresetProfiles.get_from_short_key('system_default'))
         
         if self.verbose > 1:
