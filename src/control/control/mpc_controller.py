@@ -10,10 +10,11 @@ from tf_transformations import euler_from_quaternion, quaternion_from_euler
 from .tf_utils import odometry2pose, get_pose_diff, vector_rotate_quaternion, quaternion_inverse, odometry2array, get_state
 
 import numpy as np
+from numpy import pi
 import os, sys
 
 from .flags import *
-from .parameters import force, torque
+from .parameters import force, torque, mpc_final_weights, mpc_input_weights, mpc_state_weights
 
 
 class MPCController(Node):
@@ -28,7 +29,7 @@ class MPCController(Node):
         
         self.solver = chaser_mpc.solver()            
         
-        q = quaternion_from_euler(0.0, 0.0, np.pi)
+        q = quaternion_from_euler(0.0, 0.0, pi)
         self.setpoint = np.array([
             -1,         # x
             -1,         # y
@@ -63,8 +64,6 @@ class MPCController(Node):
         if self.verbose > 1:
             self.debug_setpoint_xyz = self.create_publisher(Vector3, 'debug/setpoint_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
             self.debug_setpoint_rpy = self.create_publisher(Vector3, 'debug/setpoint_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
-            self.debug_cmd_xyz = self.create_publisher(Vector3, 'debug/cmd_xyz', QoSPresetProfiles.get_from_short_key('sensor_data'))
-            self.debug_cmd_rpy = self.create_publisher(Vector3, 'debug/cmd_rpy', QoSPresetProfiles.get_from_short_key('sensor_data'))
 
     def callback(self, msg: Odometry):
                 
@@ -72,20 +71,20 @@ class MPCController(Node):
         state = get_state(msg)
         
         # Call the optimizer
-        resp = self.solver.run(p=np.concatenate((state, self.setpoint)))
-        # self.get_logger().info('Response: {}'.format(resp.solution[:6]))
+        resp = self.solver.run(p=np.concatenate((
+            state, 
+            self.setpoint,
+            mpc_state_weights,
+            mpc_input_weights,
+            mpc_final_weights
+        )))
+
         try:
             u = np.array(resp.solution)[:6]
         except AttributeError:
             self.get_logger().error("No Solution")
             return
-        # self.get_logger().info(str(u))
-        # return
-        
-        # Rotate the thrust vector to remove body frame orientation
-        # u[0:3] = vector_rotate_quaternion(u[0:3], quaternion_inverse(odometry2array(msg)[3:]))
-        u[3:6] = vector_rotate_quaternion(u[3:6], quaternion_inverse(odometry2array(msg)[3:]))
-        
+
         cmd = Wrench()
         cmd.force.x = u[0] / force
         cmd.force.y = u[1] / force

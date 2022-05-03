@@ -5,7 +5,7 @@ import opengen as og
 import casadi.casadi as cs
 import os
 
-from parameters import *
+from parameters import force, torque, dt, m, Icm, nu, nx, mpc_horizon
 
 
 def dynamics_ct(x, u):
@@ -34,7 +34,7 @@ def dynamics_ct(x, u):
     ) / 2.0
 
     # Omega
-    dx[10:13] = cs.inv(Icm) @ u[3:6] - cs.inv(Icm) @ cs.cross(x[10:13], Icm @ x[10:13])
+    dx[10:13] = cs.inv(Icm) @ vector_rotate_quaternion(u[3:6], x[6:10]) - cs.inv(Icm) @ cs.cross(x[10:13], Icm @ x[10:13])
 
     return dx
 
@@ -51,46 +51,61 @@ def dynamics_dt(x, u):
     return x_
 
 
-def stage_cost(x, ref, u):
+def stage_cost(x, ref, u, Qs, Qi):
     cost = 0
 
-    for j in range(nx):
-        if 6 <= j <= 9: continue
-        cost += mpc_state_weights[j] * ((x[j] - ref[j])**2)
+    # ======== State cost ========
+    # position
+    for i in range(3): cost += Qs[0] * ((x[i] - ref[i])**2)
 
+    # velocity
+    for i in range(3, 6): cost += Qs[1] * ((x[i] - ref[i])**2)
+
+    # orientation
     eul = euler_from_quaternion(quaternion_multiply(
         x[6:10],
         quaternion_inverse(ref[6:10]),
     ))
-    cost += mpc_state_weights[6] * eul[0]**2 + mpc_state_weights[7] * eul[1]**2 + mpc_state_weights[8] * eul[2]**2
+    for i in range(3): cost += Qs[2] * cs.exp(eul[i]**2)
 
+    # omega
+    for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
+
+    # ======== Input cost ========
+    for j in range(nu): cost += Qi[j // 3] * (u[j]**2)
+
+    return cost
+
+
+def final_cost(x, ref, Qf):
+    cost = 0
     
-    for j in range(nu):
-        cost += mpc_input_weights[j] * (u[j]**2)
+    # position
+    for i in range(3): cost += Qf[0] * ((x[i] - ref[i])**2)
 
-    return cost
+    # velocity
+    for i in range(3, 6): cost += Qf[1] * ((x[i] - ref[i])**2)
 
-
-def final_cost(x, ref):
-    cost = 0
-
-    for j in range(nx):
-        if 6 <= j <= 9: continue
-        cost += mpc_final_weights[j] * ((x[j] - ref[j])**2)
-
+    # orientation
     eul = euler_from_quaternion(quaternion_multiply(
         x[6:10],
         quaternion_inverse(ref[6:10]),
     ))
-    cost += mpc_final_weights[6] * eul[0]**2 + mpc_final_weights[7] * eul[1]**2 + mpc_final_weights[8] * eul[2]**2
+    for i in range(3): cost += Qf[2] * eul[i]**2
+
+    # omega
+    for i in range(10, 13): cost += Qf[3] * ((x[i] - ref[i])**2)
 
     return cost
 
 
-u = cs.SX.sym('u', nu * mpc_horizon)   # Control Output Fx, Fy, Fz, Tx, Ty, Tz
-p = cs.SX.sym('p', nx*2)                    # Parameters are model state [x, y, z, roll, pitch, yaw], their velocity and acceleration
+u = cs.SX.sym('u', nu * mpc_horizon)
+p = cs.SX.sym('p', nx*2 + 10)
 x0 = p[0:nx]
 ref = p[nx:2*nx]
+state_weights = p[2*nx:2*nx+4]
+input_weights = p[2*nx+4:2*nx+6]
+final_weights = p[2*nx+6:2*nx+10]
 
 xt = x0
 cost = 0
@@ -98,11 +113,11 @@ for i in range(mpc_horizon):
     ut = u[i * nu: (i+1) * nu]
     
     # Update cost function
-    cost += stage_cost(xt, ref, ut)
+    cost += stage_cost(xt, ref, ut, state_weights, input_weights)
     
     # Move to next time step
     xt = dynamics_dt(xt, ut)
-cost += final_cost(xt, ref)
+cost += final_cost(xt, ref, final_weights)
 
 # Bound control outputs
 umax = [force, force, force, torque, torque, torque] * mpc_horizon
@@ -125,7 +140,7 @@ build_config = og.config.BuildConfiguration()       \
     .with_build_directory(os.path.join(get_package_share_directory('control'), 'python_build'))           \
     .with_build_mode('release')                     \
     .with_build_python_bindings()                   \
-    .with_rebuild(False)                             \
+    .with_rebuild(False)                            \
     # .with_tcp_interface_config()                    # IP 127.0.0.1 and port 8333
 
 
