@@ -11,7 +11,7 @@ def generate_launch_description():
             executable =  'key_teleop',
             namespace = 'chaser_0',
             parameters = [{
-                'use_sim_time': True
+                # 'use_sim_time': True
             }],
         )
     )
@@ -22,7 +22,7 @@ def generate_launch_description():
             executable =  'thruster',
             namespace = 'chaser_0',
             parameters = [{
-                'use_sim_time': True
+                # 'use_sim_time': True
             }],
         )
     )
