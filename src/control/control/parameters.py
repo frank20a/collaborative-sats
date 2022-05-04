@@ -17,11 +17,11 @@ nx = 13
 mpc_state_weights = [
     25,     # position
     1,      # velocity
-    75,     # orientation (exponential cost)
+    75,    # orientation (exponential cost)
     5       # omega
 ]
 mpc_input_weights = [   
-    10,     # force
-    4e2    # torque
+    1,      # force
+    40      # torque
 ]
 mpc_final_weights = [mpc_horizon * 5e2 * i for i in mpc_state_weights]

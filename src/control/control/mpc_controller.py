@@ -94,17 +94,13 @@ class MPCController(Node):
         state = get_state(msg)
         
         # Call the optimizer
-        try:
-            resp = self.solver.run(p=np.concatenate((
-                state, 
-                self.setpoint,
-                mpc_state_weights,
-                mpc_input_weights,
-                mpc_final_weights
-            )))
-
-        except ValueError:
-            return
+        resp = self.solver.run(p=np.concatenate((
+            state, 
+            self.setpoint,
+            mpc_state_weights,
+            mpc_input_weights,
+            mpc_final_weights
+        )))
 
         try:
             u = np.array(resp.solution)[:6]
@@ -112,7 +108,7 @@ class MPCController(Node):
             self.get_logger().error("No Solution")
             return
 
-
+        
         
         cmd = Wrench()
         cmd.force.x = u[0] / force

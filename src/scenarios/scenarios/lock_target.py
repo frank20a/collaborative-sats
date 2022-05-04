@@ -17,7 +17,7 @@ class TargetLock(Node):
         super().__init__('target_lock')
 
         # Declare parameters
-        self.declare_parameter('frequency', 10.0)
+        self.declare_parameter('frequency', 5.0)
 
         self.freq = self.get_parameter('frequency').get_parameter_value().double_value
         
@@ -72,15 +72,17 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(node)
         
-        try:
-            node.target_pose = tf2pose(node.buffer.lookup_transform('world', (node.get_namespace() + '/estimated_pose').lstrip('/'), Time(seconds=0)))
-        except (LookupException, ConnectivityException, ExtrapolationException):
-            pass
+        if node.target_pose is None:
+            try:
+                node.target_pose = tf2pose(node.buffer.lookup_transform('world', (node.get_namespace() + '/estimated_pose').lstrip('/'), Time(seconds=0)))
+            except (LookupException, ConnectivityException, ExtrapolationException):
+                pass
         
-        try:
-            node.chaser_pose = tf2pose(node.buffer.lookup_transform('world', (node.get_namespace() + '/body').lstrip('/'), Time(seconds=0)))
-        except (LookupException, ConnectivityException, ExtrapolationException):
-            pass
+        if node.chaser_pose is None:
+            try:
+                node.chaser_pose = tf2pose(node.buffer.lookup_transform('world', (node.get_namespace() + '/body').lstrip('/'), Time(seconds=0)))
+            except (LookupException, ConnectivityException, ExtrapolationException):
+                pass
     
     node.destroy_node()
     rclpy.shutdown()

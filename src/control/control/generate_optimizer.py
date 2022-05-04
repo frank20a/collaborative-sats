@@ -51,6 +51,10 @@ def dynamics_dt(x, u):
     return x_
 
 
+def sigmoid(x):
+    return 2 * (cs.exp(x) / (1 + cs.exp(x)) - 0.5)
+
+
 def stage_cost(x, ref, u, Qs, Qi):
     cost = 0
 
@@ -66,7 +70,7 @@ def stage_cost(x, ref, u, Qs, Qi):
         x[6:10],
         quaternion_inverse(ref[6:10]),
     ))
-    for i in range(3): cost += Qs[2] * cs.exp(eul[i]**2)
+    for i in range(3): cost += Qs[2] * sigmoid(eul[i]**2)
 
     # omega
     for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
@@ -78,23 +82,7 @@ def stage_cost(x, ref, u, Qs, Qi):
 
 
 def final_cost(x, ref, Qf):
-    cost = 0
-    
-    # position
-    for i in range(3): cost += Qf[0] * ((x[i] - ref[i])**2)
-
-    # velocity
-    for i in range(3, 6): cost += Qf[1] * ((x[i] - ref[i])**2)
-
-    # orientation
-    eul = euler_from_quaternion(quaternion_multiply(
-        x[6:10],
-        quaternion_inverse(ref[6:10]),
-    ))
-    for i in range(3): cost += Qf[2] * eul[i]**2
-
-    # omega
-    for i in range(10, 13): cost += Qf[3] * ((x[i] - ref[i])**2)
+    cost = stage_cost(x, ref, [0, 0, 0, 0, 0, 0], Qf, [0, 0])
 
     return cost
 
