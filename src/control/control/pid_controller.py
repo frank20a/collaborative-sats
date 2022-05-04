@@ -101,14 +101,15 @@ class PIDController(Node):
         for i in range(6):            
             control[i] = self.controller[i](pose[i]) / self.mul
         u = np.array(control)
-        u[0:3] = vector_rotate_quaternion(u[0:3], quaternion_inverse(odometry2array(msg)[3:]))
+        u[:3] = vector_rotate_quaternion(u[:3], quaternion_inverse(odometry2array(msg)[3:]))
+        u[3:] = vector_rotate_quaternion(u[3:], quaternion_inverse(odometry2array(msg)[3:]))
         
         if self.thruster_type == 'onoff':
             cmd = Int16()
             cmd.data = 0
             for i, f in enumerate(u):
                 # Skip roll and pitch control
-                if i == 3 or i == 4: continue
+                # if i == 3 or i == 4: continue
                 
                 tmp = stepify(f)
                 if tmp != 0:
