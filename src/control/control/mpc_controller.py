@@ -29,8 +29,21 @@ class MPCController(Node):
         
         if init_setpoint != '':
             tmp = [float(i) for i in init_setpoint.split(' ')]
-            tmp = tmp[:3] + [0, 0, 0] + tmp[3:] + [0, 0, 0]
-            self.setpoint = np.array(tmp, dtype=np.float64)
+            self.setpoint = np.array([
+                tmp[0],
+                tmp[1],
+                tmp[2],
+                0.0,
+                0.0,
+                0.0,
+                tmp[3],
+                tmp[4],
+                tmp[5],
+                tmp[6],
+                0.0,
+                0.0,
+                0.0
+            ], dtype=np.float64)
         else:
             q = quaternion_from_euler(0.0, 0.0, pi)
             self.setpoint = np.array([
@@ -81,13 +94,17 @@ class MPCController(Node):
         state = get_state(msg)
         
         # Call the optimizer
-        resp = self.solver.run(p=np.concatenate((
-            state, 
-            self.setpoint,
-            mpc_state_weights,
-            mpc_input_weights,
-            mpc_final_weights
-        )))
+        try:
+            resp = self.solver.run(p=np.concatenate((
+                state, 
+                self.setpoint,
+                mpc_state_weights,
+                mpc_input_weights,
+                mpc_final_weights
+            )))
+
+        except ValueError:
+            return
 
         try:
             u = np.array(resp.solution)[:6]
@@ -95,6 +112,8 @@ class MPCController(Node):
             self.get_logger().error("No Solution")
             return
 
+
+        
         cmd = Wrench()
         cmd.force.x = u[0] / force
         cmd.force.y = u[1] / force
@@ -122,7 +141,21 @@ class MPCController(Node):
             self.debug_setpoint_rpy.publish(tmp)
 
     def set_setpoint(self, msg: Pose):
-        self.setpoint = msg
+        self.setpoint = np.array([
+            msg.position.x,
+            msg.position.y,
+            msg.position.z,
+            0,
+            0,
+            0,
+            msg.orientation.x,
+            msg.orientation.y,
+            msg.orientation.z,
+            msg.orientation.w,
+            0,
+            0,
+            0
+        ], dtype=np.float64)
         
 
 def main(args=None):

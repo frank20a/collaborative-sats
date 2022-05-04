@@ -11,8 +11,9 @@ def generate_launch_description():
             executable =  'pid',
             parameters=[{
                 'thruster_type': 'pwm',
-                'verbose': 2,
+                'verbose': 0,
                 'use_sim_time': True,
+                'init_setpoint': '-1.0 0.5 0.75 0.0 0.0 -0.258819 0.9659258',
             }],
             namespace = 'chaser_0',
         )
@@ -23,7 +24,7 @@ def generate_launch_description():
             package = 'control',
             executable =  'thruster_pwm',
             parameters=[{
-                'verbose': 2,
+                'verbose': 0,
                 'use_sim_time': True,
             }],
             namespace = 'chaser_0',
