@@ -7,6 +7,17 @@
             <update_rate>30</update_rate>
             <joint_name>body_fix</joint_name>
         </plugin>
+
+      <plugin name="controller_plugin" filename="libgazebo_ros_force.so">
+          <link_name>body</link_name>
+          <force_frame>link</force_frame>
+      </plugin>
+      <plugin name="p3d" filename="libgazebo_ros_p3d.so">
+          <frame_name>world</frame_name>
+          <body_name>body</body_name>
+          <topic_name>odom</topic_name>
+          <update_rate>30.0</update_rate>
+      </plugin>
     </gazebo>
     
     <!-- Gravity -->

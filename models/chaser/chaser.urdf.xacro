@@ -3,8 +3,8 @@
     <xacro:include filename="dimensions.xacro"/>
     <xacro:include filename="macros.xacro"/>
     
-    <!-- World -->
-    <!-- <link name="world"></link> -->
+    <!-- Dummy root link -->
+    <!-- <link name="root"></link> -->
 
     <!-- Body -->
     <link name="body">
@@ -66,9 +66,9 @@
         </xacro:inertial_box>
     </link>
 
-    <!-- <joint name="body_fix" type="fixed">
+    <!-- <joint name="root_fix" type="fixed">
         <origin xyz="0 0 0"/>
-        <parent link="world"/>
+        <parent link="root"/>
         <child link="body"/>
     </joint> -->
 

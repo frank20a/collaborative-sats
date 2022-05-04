@@ -12,14 +12,14 @@ def generate_launch_description():
     # Run Gazebo simulation from control/sim.launch.py
     ld.add_entity(
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('pose_estimation'), 'launch'), '/sim.launch.py']),
+            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('scenarios'), 'launch'), '/sim.launch.py']),
         )
     )
 
-    # Run PID Controller
+    # Run Controller
     ld.add_entity(
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('control'), 'launch'), '/pid_thrust.launch.py']),
+            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('control'), 'launch'), '/mpc_thrust.launch.py']),
         )
     )
     
