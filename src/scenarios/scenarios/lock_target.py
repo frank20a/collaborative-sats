@@ -47,6 +47,7 @@ class TargetLock(Node):
         req.position.x = self.chaser_pose.position.x
         req.position.y = self.chaser_pose.position.y
         req.position.z = self.chaser_pose.position.z
+        # self.get_logger().info('req: {}'.format(self.target_pose))
 
         eul = [
             0.0,

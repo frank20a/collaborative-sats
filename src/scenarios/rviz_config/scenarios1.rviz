@@ -128,9 +128,9 @@ Visualization Manager:
         chaser_0/camera_optical:
           Value: true
         chaser_0/estimated_pose:
-          Value: false
-        chaser_0/target_body:
           Value: true
+        chaser_0/target_body:
+          Value: false
         world:
           Value: true
       Marker Scale: 1
@@ -224,10 +224,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0012465715408325
+      Pitch: 0.4062471389770508
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.336191177368164
+      Yaw: 4.226191997528076
     Saved: ~
 Window Geometry:
   Aruco 0 Verbose:

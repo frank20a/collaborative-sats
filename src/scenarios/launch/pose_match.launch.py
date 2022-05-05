@@ -26,7 +26,7 @@ def generate_launch_description():
     ld.add_entity(
         Node(
             package = 'scenarios',
-            executable =  'lock_target',
+            executable =  'pose_match',
             namespace = 'chaser_0',
         )
     )
