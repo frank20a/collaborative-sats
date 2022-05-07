@@ -30,6 +30,7 @@ setup(
             'spawn_model = ' + package_name + '.spawn_model:main',
             'odometry2tf = ' + package_name + '.odometry2tf:main',
             'tf_debugger = ' + package_name + '.tf_debugger:main',
+            'setpoint_publisher = ' + package_name + '.setpoint_publisher:main',
         ],
     },
 )

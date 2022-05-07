@@ -55,19 +55,6 @@ def main(args=None):
     rclpy.init(args=args)
     node = ThrustController()
     rclpy.spin(node)
-    # future = node.send_request()
-
-    # while rclpy.ok():
-    #     rclpy.spin_once(node)
-    #     if future.done():
-    #         try:
-    #             response = future.result()
-    #         except Exception as e:
-    #             node.get_logger().info('Service call failed %r' % (e,))
-    #         else:
-    #             node.get_logger().info('Call was made. Successful: %r' % (response.success,))
-    #         break 
-    # node.get_logger().info(str(response.status_message))
         
     node.destroy_node()
     rclpy.shutdown()

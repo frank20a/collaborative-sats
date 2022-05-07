@@ -25,6 +25,15 @@ def get_pose_diff(target: Pose, pose: Pose) -> Pose:
     return res
 
 
+def tfstamped2pose(tf: TransformStamped) -> Pose:
+    pose = Pose()
+    pose.position.x = tf.transform.translation.x
+    pose.position.y = tf.transform.translation.y
+    pose.position.z = tf.transform.translation.z
+    pose.orientation = tf.transform.rotation
+    return pose
+    
+
 def odometry2tfstamped(odom: Odometry) -> TransformStamped:
     t = TransformStamped()
     

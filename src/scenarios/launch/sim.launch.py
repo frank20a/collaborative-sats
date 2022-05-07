@@ -94,7 +94,8 @@ def generate_launch_description():
                 'use_sim_time': True,
                 'sim': True,
                 'filter': 'const_accel',
-                'duration': False
+                'duration': False,
+                'ra_len': 3,
             }],
             remappings=[
                 ('input_img', 'front_cam/image_raw'),
