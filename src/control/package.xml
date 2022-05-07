@@ -15,7 +15,7 @@
   <exec_depend>simple-pid</exec_depend>
   <exec_depend>numpy</exec_depend>
   <exec_depend>casadi</exec_depend>
-  <exec_depend>pandas</exec_depend>
+  <exec_depend>pynput</exec_depend>
 
   <build_depend>opengen</build_depend>
   <build_depend>cargo</build_depend>
