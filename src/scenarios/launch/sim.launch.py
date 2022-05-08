@@ -104,20 +104,5 @@ def generate_launch_description():
         )
     )
 
-# ================= RViz =================
-    # Open RViz
-    ld.add_entity(
-        Node(
-            package = 'rviz2',
-            executable = 'rviz2',
-            output = {'both': 'log'},
-            parameters = [{
-                'use_sim_time': True
-            }],
-            arguments = [
-                '-d', os.path.join(get_package_share_directory('scenarios'), 'rviz_config/scenarios1.rviz'),
-            ],
-        )
-    )
 
     return ld

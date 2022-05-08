@@ -1,13 +1,11 @@
-from pandas import Int16Dtype
 import rclpy
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
-from geometry_msgs.msg import Vector3, Pose, Wrench, Twist
-from std_msgs.msg import Int16
+from geometry_msgs.msg import Vector3, Pose, Wrench
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
-from .tf_utils import odometry2pose, get_pose_diff, vector_rotate_quaternion, quaternion_inverse, odometry2array, get_state
+from .tf_utils import get_state
 
 import numpy as np
 from numpy import pi
@@ -63,9 +61,9 @@ class MPCController(Node):
             ], dtype=np.float64)
         
         # Solver
-        sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/chaser_mpc'))
-        import chaser_mpc
-        self.solver = chaser_mpc.solver()       
+        sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/generic_mpc'))
+        import generic_mpc
+        self.solver = generic_mpc.solver()       
 
         # Subscriptions
         self.create_subscription(

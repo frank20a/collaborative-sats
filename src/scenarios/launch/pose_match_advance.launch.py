@@ -9,31 +9,47 @@ def generate_launch_description():
 
     ld = LaunchDescription()
     
-    # Run Gazebo simulation from control/sim.launch.py
+    
+    # ================= Simulation =================
     ld.add_entity(
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('scenarios'), 'launch'), '/sim.launch.py']),
         )
     )
 
-    # ================= Run Controller =================
-    ld.add_entity(
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('control'), 'launch'), '/mpc_thrust.launch.py']),
-        )
-    )
-    
-    # ================= Run Scenario =================
+
+    # ================= Estimation Combiner =================
     ld.add_entity(
         Node(
-            package = 'scenarios',
-            executable =  'pose_match',
-            namespace = 'chaser_0',
+            package = 'pose_estimation',
+            executable =  'combine_estimations',
+            parameters=[{
+                'use_sim_time': True,
+                'num_chasers': 1,
+            }]
         )
     )
 
+
+    # ================= Controller =================
+    ld.add_entity(
+        Node(
+            package = 'control',
+            executable = 'pose_match',
+        )
+    )
+
+    for i in range(1):
+        ld.add_entity(
+            Node(
+                package = 'control',
+                executable = 'thruster_pwm',
+                namespace = 'chaser_' + str(i),
+            )
+        )
+
+
     # ================= RViz =================
-    # Open RViz
     ld.add_entity(
         Node(
             package = 'rviz2',
@@ -43,10 +59,11 @@ def generate_launch_description():
                 'use_sim_time': True
             }],
             arguments = [
-                '-d', os.path.join(get_package_share_directory('scenarios'), 'rviz_config/scenarios1.rviz'),
+                '-d', os.path.join(get_package_share_directory('scenarios'), 'rviz_config/scenarios2.rviz'),
             ],
         )
     )
+    
     
     return ld
 

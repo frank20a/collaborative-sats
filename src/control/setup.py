@@ -30,6 +30,7 @@ setup(
             'pid = ' + package_name + '.pid_controller:main',
             'thruster_pwm = ' + package_name + '.thruster_pwm:main',
             'mpc = ' + package_name + '.mpc_controller:main',
+            'pose_match = ' + package_name + '.pose_match_mpc_controller:main',
         ],
     },
 )

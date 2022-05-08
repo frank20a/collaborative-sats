@@ -1,5 +1,5 @@
 from ament_index_python import get_package_share_directory
-from tf_utils_symbolic import quaternion_multiply, quaternion_norm, euler_from_quaternion, quaternion_inverse, vector_rotate_quaternion
+from control.tf_utils_symbolic import quaternion_multiply, quaternion_norm, euler_from_quaternion, quaternion_inverse, vector_rotate_quaternion
 
 import opengen as og
 import casadi.casadi as cs
@@ -118,10 +118,10 @@ problem = og.builder.Problem(u, p, cost)     \
 
 
 meta = og.config.OptimizerMeta()        \
-    .with_version('0.1.0')              \
+    .with_version('1.0.0')              \
     .with_authors(['Frank Fourlas'])    \
     .with_licence('MIT')                \
-    .with_optimizer_name('chaser_mpc')
+    .with_optimizer_name('generic_mpc')
     
     
 build_config = og.config.BuildConfiguration()       \
