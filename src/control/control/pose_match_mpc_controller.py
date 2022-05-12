@@ -16,7 +16,7 @@ import os, sys
 from functools import partial
 
 from .flags import *
-from .parameters import force, torque, mpc_final_weights, mpc_input_weights, mpc_state_weights, dt
+from .parameters import force, torque, mpc_final_weights, mpc_input_weights, mpc_state_weights
 from .pose_match_mpc_generator.parameters import nc, nu
 
 
@@ -25,14 +25,16 @@ class MPCController2(Node):
         super().__init__('mpc_advance')
         self.declare_parameter('verbose', 0)
         self.declare_parameter('nc', nc)
-        self.declare_parameter('freq', 1/dt)
+        self.declare_parameter('freq', 30.0)
+        self.declare_parameter('ra_len', 5)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.nc = self.get_parameter('nc').get_parameter_value().integer_value
         self.dt = 1 / self.get_parameter('freq').get_parameter_value().double_value
+        self.ra_len = self.get_parameter('ra_len').get_parameter_value().integer_value
 
         self.target_state = None
-        self.prev_target_state = None
+        self.prev_target_state = [None] * self.ra_len
         self.chaser_states = [None] * self.nc
         
         # Solver
@@ -74,11 +76,13 @@ class MPCController2(Node):
 
         # Call the optimizer
         resp = self.solver.run(p=np.concatenate((
-            np.concatenate(self.chaser_states), 
-            self.target_state,
-            mpc_state_weights,
-            mpc_input_weights,
-            mpc_final_weights
+            np.concatenate(self.chaser_states),                     # State of each chaser
+            self.target_state,                                      # Target state
+            np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64),     # Offsets from target state for chaser 1
+            np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64),     # Offsets from target state for chaser 2
+            mpc_state_weights,                                      # State weights
+            mpc_input_weights,                                      # Input weights
+            mpc_final_weights                                       # Final weights
         )))
 
         for i in range(self.nc):
@@ -103,8 +107,7 @@ class MPCController2(Node):
 
     def get_target_state(self, msg: TransformStamped):
         # self.get_logger().info("Got target")
-
-        if self.prev_target_state is None: 
+        if any(map(lambda x: x is None, self.prev_target_state)): 
             self.target_state = np.array([
                 msg.transform.translation.x,
                 msg.transform.translation.y,
@@ -120,37 +123,45 @@ class MPCController2(Node):
                 0,
                 0
             ], dtype=np.float64)
+            self.prev_target_state = self.prev_target_state[1:] + [self.target_state]
         else:
             v = [
-                (msg.transform.translation.x - self.prev_target_state[0]) / self.dt,
-                (msg.transform.translation.y - self.prev_target_state[1]) / self.dt,
-                (msg.transform.translation.z - self.prev_target_state[2]) / self.dt,
+                (msg.transform.translation.x - self.prev_target_state[-1][0]) / self.dt,
+                (msg.transform.translation.y - self.prev_target_state[-1][1]) / self.dt,
+                (msg.transform.translation.z - self.prev_target_state[-1][2]) / self.dt,
             ]
 
             eul = np.array(euler_from_quaternion([
                 msg.transform.rotation.x,
                 msg.transform.rotation.y, 
                 msg.transform.rotation.z, 
-                msg.transform.rotation.w])) - np.array(euler_from_quaternion(self.prev_target_state[6:10]))
+                msg.transform.rotation.w])) - np.array(euler_from_quaternion(self.prev_target_state[-1][6:10]))
             omega = eul / self.dt
 
             self.target_state = np.array([
                 msg.transform.translation.x,
                 msg.transform.translation.y,
                 msg.transform.translation.z,
-                v[0],
-                v[1],
-                v[2],
+                v[0] if abs(v[0]) > 0.1 else 0,
+                v[1] if abs(v[1]) > 0.1 else 0,
+                v[2] if abs(v[2]) > 0.1 else 0,
                 msg.transform.rotation.x,
                 msg.transform.rotation.y,
                 msg.transform.rotation.z,
                 msg.transform.rotation.w,
-                omega[0],
-                omega[1],
-                omega[2]
+                omega[0] if abs(omega[0]) > 0.1 else 0,
+                omega[1] if abs(omega[1]) > 0.1 else 0,
+                omega[2] if abs(omega[2]) > 0.1 else 0
             ], dtype=np.float64)
-        
-        self.prev_target_state = self.target_state
+            self.get_logger().info("Target state: {}".format(self.target_state))
+
+            self.prev_target_state = self.prev_target_state[1:] + [self.target_state]
+            self.target_state[3]  = sum([self.prev_target_state[i][3] for i in range(self.ra_len)]) / self.ra_len
+            self.target_state[4]  = sum([self.prev_target_state[i][4] for i in range(self.ra_len)]) / self.ra_len
+            self.target_state[5]  = sum([self.prev_target_state[i][5] for i in range(self.ra_len)]) / self.ra_len
+            self.target_state[10] = sum([self.prev_target_state[i][10] for i in range(self.ra_len)]) / self.ra_len
+            self.target_state[11] = sum([self.prev_target_state[i][11] for i in range(self.ra_len)]) / self.ra_len
+            self.target_state[12] = sum([self.prev_target_state[i][12] for i in range(self.ra_len)]) / self.ra_len
 
 def main(args=None):
     rclpy.init(args=args)

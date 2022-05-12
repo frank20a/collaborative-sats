@@ -89,7 +89,7 @@ def target_dynamics_dt(x):
     for i in range(nx):
         x_[i] = x[i] + dt * dx[i]
 
-    x_[6:10] = x_[6:10] / quaternion_norm(x_[6:10])
+    x_[6:10] = x_[6:10]
 
     return x_
 
@@ -98,23 +98,39 @@ def sigmoid(x):
     return 2 * (cs.exp(x) / (1 + cs.exp(x)) - 0.5)
 
 
-def stage_cost(xs, ref, us, Qs, Qi):
+def stage_cost(xs, ref, offset, us, Qs, Qi):
     cost = 0
 
-    for n, (x, u) in enumerate(zip(xs, us)):
+    for n, (x, u, off) in enumerate(zip(xs, us, offset)):
         # ======== State cost ========
         # position
-        for i in range(3): cost += Qs[0] * ((x[i] - ref[i] - (-1 if i == n else 0))**2)
+        tmp = vector_rotate_quaternion(ref[0:3] + off[0:3], ref[6:10])
+        for i in range(3): cost += Qs[0] * ((x[i] - tmp[i])**2)
 
         # velocity
         for i in range(3, 6): cost += Qs[1] * ((x[i] - ref[i])**2)
 
         # orientation
-        eul = euler_from_quaternion(quaternion_multiply(
+        # eul = euler_from_quaternion(quaternion_multiply(
+        #     x[6:10],
+        #     quaternion_inverse(ref[6:10]),
+        # ))
+        # tmp = off[3:6]
+        # for i in range(3): cost += Qs[2] * sigmoid((eul[i] - tmp[i])**2)
+        # q_err = quaternion_multiply(
+        #     off[3:7],
+        #     ref[6:10],
+        # )
+        tmp = quaternion_multiply(
+            off[3:7],
+            ref[6:10],
+        )
+        q_err = quaternion_multiply(
             x[6:10],
-            quaternion_inverse(ref[6:10]),
-        ))
-        for i in range(3): cost += Qs[2] * sigmoid((eul[i] - (n * cs.pi / 2 if i == 2 else 0))**2)
+            quaternion_inverse(tmp),
+        )
+        q_err /= quaternion_norm(q_err)
+        for i in range(3): cost += Qs[2] * q_err[i]**2
 
         # omega
         for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
@@ -125,19 +141,20 @@ def stage_cost(xs, ref, us, Qs, Qi):
     return cost
 
 
-def final_cost(x, ref, Qf):
-    cost = stage_cost(x, ref, [[0] * nu for i in range(nc)], Qf, [0, 0])
+def final_cost(x, ref, offset, Qf):
+    cost = stage_cost(x, ref, offset, [[0] * nu for i in range(nc)], Qf, [0, 0])
 
     return cost
 
 
 u = cs.SX.sym('u', nu * nc * mpc_horizon)
-p = cs.SX.sym('p', nx * (nc + 1) + 10)
+p = cs.SX.sym('p', nx * (nc + 1) + 7*nc + 10)
 x0 = [p[nx * i:nx * (i+1)] for i in range(nc)]
 x0_tar = p[nx * nc: nx * (nc + 1)]
-state_weights = p[nx * (nc + 1) + 0 : nx * (nc + 1) + 4]
-input_weights = p[nx * (nc + 1) + 4 : nx * (nc + 1) + 6]
-final_weights = p[nx * (nc + 1) + 6 : nx * (nc + 1) + 10]
+offset = [p[nx * (nc + 1) + i*7: nx * (nc + 1) + (i+1)*7] for i in range(nc)]
+state_weights = p[nx * (nc + 1) + 7*nc + + 0 : nx * (nc + 1) + 7*nc + + 4]
+input_weights = p[nx * (nc + 1) + 7*nc + + 4 : nx * (nc + 1) + 7*nc + + 6]
+final_weights = p[nx * (nc + 1) + 7*nc + + 6 : nx * (nc + 1) + 7*nc + + 10]
 
 xt = x0
 xt_tar = x0_tar
@@ -146,13 +163,13 @@ for i in range(mpc_horizon):
     ut = [u[i*nu*nc + j*nu: i*nu*nc + (j+1)*nu] for j in range(nc)]
     
     # Update cost function
-    cost += stage_cost(xt, xt_tar, ut, state_weights, input_weights)
+    cost += stage_cost(xt, xt_tar, offset, ut, state_weights, input_weights)
     
     # Move to next time step
     for j in range(nc):
         xt[j] = chaser_dynamics_dt(xt[j], ut[j])
     xt_tar = target_dynamics_dt(xt_tar)
-cost += final_cost(xt, xt_tar, final_weights)
+cost += final_cost(xt, xt_tar, offset, final_weights)
 
 # Bound control outputs
 umax = [force, force, force, torque, torque, torque] * mpc_horizon
@@ -165,7 +182,7 @@ problem = og.builder.Problem(u, p, cost)     \
 
 
 meta = og.config.OptimizerMeta()        \
-    .with_version('0.1.0')              \
+    .with_version('0.2.0')              \
     .with_authors(['Frank Fourlas'])    \
     .with_licence('MIT')                \
     .with_optimizer_name('pose_match_mpc')
