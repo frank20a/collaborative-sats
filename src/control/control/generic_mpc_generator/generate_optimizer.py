@@ -66,11 +66,17 @@ def stage_cost(x, ref, u, Qs, Qi):
     for i in range(3, 6): cost += Qs[1] * ((x[i] - ref[i])**2)
 
     # orientation
-    eul = euler_from_quaternion(quaternion_multiply(
+    # eul = euler_from_quaternion(quaternion_multiply(
+    #     x[6:10],
+    #     quaternion_inverse(ref[6:10]),
+    # ))
+    # for i in range(3): cost += Qs[2] * sigmoid(eul[i]**2)
+    q_err = quaternion_multiply(
         x[6:10],
         quaternion_inverse(ref[6:10]),
-    ))
-    for i in range(3): cost += Qs[2] * sigmoid(eul[i]**2)
+    )
+    q_err /= quaternion_norm(q_err)
+    for i in range(3): cost += Qs[2] * q_err[i]**2
 
     # omega
     for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
