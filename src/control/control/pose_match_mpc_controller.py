@@ -36,6 +36,7 @@ class MPCController2(Node):
         self.target_state = None
         self.prev_target_state = [None] * self.ra_len
         self.chaser_states = [None] * self.nc
+        self.cmd = Wrench()
         
         # Solver
         sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/pose_match_mpc'))
@@ -63,7 +64,7 @@ class MPCController2(Node):
         TransformListener(self.buffer, self)
 
         # Callback to run controller
-        self.create_timer(self.dt / 5, self.callback)
+        self.create_timer(self.dt / 15, self.callback)
 
     def get_odom(self, chaser_num, msg: Odometry):
         # self.get_logger().info("Got chaser {}".format(chaser_num))
@@ -75,32 +76,37 @@ class MPCController2(Node):
         # self.get_logger().info("Running controller")
 
         # Call the optimizer
-        resp = self.solver.run(p=np.concatenate((
-            np.concatenate(self.chaser_states),                     # State of each chaser
-            self.target_state,                                      # Target state
-            np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64),     # Offsets from target state for chaser 1
-            np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64),     # Offsets from target state for chaser 2
-            mpc_state_weights,                                      # State weights
-            mpc_input_weights,                                      # Input weights
-            mpc_final_weights                                       # Final weights
-        )))
+        p = np.concatenate((
+            np.concatenate(self.chaser_states),                                 # State of each chaser
+            self.target_state,                                                  # Target state
+            np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64),                 # Offsets from target state for chaser 1
+            np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64),       # Offsets from target state for chaser 2
+            mpc_state_weights,                                                  # State weights
+            mpc_input_weights,                                                  # Input weights
+            mpc_final_weights                                                   # Final weights
+        ))
+        resp = self.solver.run(p=p)
 
         for i in range(self.nc):
             try:
                 u = np.array(resp.solution)[nu * i: nu * (i + 1)]
             except AttributeError:
                 self.get_logger().error("No Solution")
-                return
-
-            cmd = Wrench()
-            cmd.force.x = u[0] / force
-            cmd.force.y = u[1] / force
-            cmd.force.z = u[2] / force
-            cmd.torque.x = u[3] / torque
-            cmd.torque.y = u[4] / torque
-            cmd.torque.z = u[5] / torque
-
-            self.pubs[i].publish(cmd)
+                self.cmd.force.x = -self.cmd.force.x / 3
+                self.cmd.force.y = -self.cmd.force.y / 3
+                self.cmd.force.z = -self.cmd.force.z / 3
+                self.cmd.torque.x = -self.cmd.torque.x / 3
+                self.cmd.torque.y = -self.cmd.torque.y / 3
+                self.cmd.torque.z = -self.cmd.torque.z / 3
+            else:
+                self.cmd.force.x = u[0] / force
+                self.cmd.force.y = u[1] / force
+                self.cmd.force.z = u[2] / force
+                self.cmd.torque.x = u[3] / torque
+                self.cmd.torque.y = u[4] / torque
+                self.cmd.torque.z = u[5] / torque
+            finally:
+                self.pubs[i].publish(self.cmd)
         
         self.target_state = None
         self.chaser_states = [None] * self.nc
@@ -123,6 +129,7 @@ class MPCController2(Node):
                 0,
                 0
             ], dtype=np.float64)
+            self.prev_target_state[6:10] /= np.linalg.norm(self.prev_target_state[6:10])
             self.prev_target_state = self.prev_target_state[1:] + [self.target_state]
         else:
             v = [
@@ -153,7 +160,8 @@ class MPCController2(Node):
                 omega[1] if abs(omega[1]) > 0.1 else 0,
                 omega[2] if abs(omega[2]) > 0.1 else 0
             ], dtype=np.float64)
-            self.get_logger().info("Target state: {}".format(self.target_state))
+            self.prev_target_state[6:10] /= np.linalg.norm(self.prev_target_state[6:10])
+            # self.get_logger().info("Target state: {}".format(self.target_state))
 
             self.prev_target_state = self.prev_target_state[1:] + [self.target_state]
             self.target_state[3]  = sum([self.prev_target_state[i][3] for i in range(self.ra_len)]) / self.ra_len
