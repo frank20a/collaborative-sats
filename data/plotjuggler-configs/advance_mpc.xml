@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+ <tabbed_widget parent="main_window" name="Main Window">
+  <Tab tab_name="Rel. Pose" containers="1">
+   <Container>
+    <DockSplitter count="2" sizes="0.500611;0.499389" orientation="-">
+     <DockArea name="Relative Position (m)">
+      <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+       <range left="-15.321096" right="-0.346681" bottom="-1.023976" top="0.048735"/>
+       <limitY/>
+       <curve color="#ff0000" name="/debug/relative_pose_0/position/x"/>
+       <curve color="#00ff00" name="/debug/relative_pose_0/position/y"/>
+       <curve color="#0000ff" name="/debug/relative_pose_0/position/z"/>
+      </plot>
+     </DockArea>
+     <DockArea name="Relative Orientation (deg)">
+      <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+       <range left="-15.321096" right="-0.346681" bottom="-4.079005" top="4.524568"/>
+       <limitY/>
+       <curve color="#ff0000" name="/debug/relative_pose_0/orientation/roll_deg"/>
+       <curve color="#00ff00" name="/debug/relative_pose_0/orientation/pitch_deg"/>
+       <curve color="#0000ff" name="/debug/relative_pose_0/orientation/yaw_deg"/>
+      </plot>
+     </DockArea>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="Target Pose" containers="1">
+   <Container>
+    <DockSplitter count="2" sizes="0.500611;0.499389" orientation="-">
+     <DockArea name="Position (m)">
+      <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+       <range left="8.947684" right="30.772724" bottom="-0.028107" top="1.030343"/>
+       <limitY/>
+       <curve color="#ff0000" name="/debug/target_pose/position/x"/>
+       <curve color="#00ff00" name="/debug/target_pose/position/y"/>
+       <curve color="#0000ff" name="/debug/target_pose/position/z"/>
+       <curve color="#ffff00" name="/target/odom/pose/pose/position/x"/>
+       <curve color="#ff00ff" name="/target/odom/pose/pose/position/y"/>
+       <curve color="#00ffff" name="/target/odom/pose/pose/position/z"/>
+      </plot>
+     </DockArea>
+     <DockArea name="Orientation (deg)">
+      <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+       <range left="8.947684" right="30.772724" bottom="-2.402469" top="5.558793"/>
+       <limitY/>
+       <curve color="#ff0000" name="/debug/target_pose/orientation/roll_deg"/>
+       <curve color="#0000ff" name="/debug/target_pose/orientation/yaw_deg"/>
+       <curve color="#00ff00" name="/debug/target_pose/orientation/pitch_deg"/>
+       <curve color="#ff00ff" name="/target/odom/pose/pose/orientation/roll_deg"/>
+       <curve color="#ffff00" name="/target/odom/pose/pose/orientation/pitch_deg"/>
+       <curve color="#00ffff" name="/target/odom/pose/pose/orientation/yaw_deg"/>
+      </plot>
+     </DockArea>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="Target Lin. Velocity" containers="1">
+   <Container>
+    <DockSplitter count="2" sizes="0.500611;0.499389" orientation="-">
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
+      <DockArea name="X">
+       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+        <range left="-15.321096" right="-0.346681" bottom="-0.100000" top="0.100000"/>
+        <limitY/>
+        <curve color="#ff0000" name="/debug/target_twist/linear/x"/>
+        <curve color="#000000" name="/target/odom/twist/twist/linear/x"/>
+       </plot>
+      </DockArea>
+      <DockArea name="Y">
+       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+        <range left="-15.321096" right="-0.346681" bottom="-0.100000" top="0.100000"/>
+        <limitY/>
+        <curve color="#00ff00" name="/debug/target_twist/linear/y"/>
+        <curve color="#000000" name="/target/odom/twist/twist/linear/y"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
+      <DockArea name="Z">
+       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+        <range left="-15.321096" right="-0.346681" bottom="-0.022725" top="0.019772"/>
+        <limitY/>
+        <curve color="#0000ff" name="/debug/target_twist/linear/z"/>
+        <curve color="#000000" name="/target/odom/twist/twist/linear/z"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+        <range left="0.000000" right="1.000000" bottom="0.000000" top="1.000000"/>
+        <limitY/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="Target Ang. Velocity" containers="1">
+   <Container>
+    <DockSplitter count="1" sizes="1" orientation="-">
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
+      <DockSplitter count="2" sizes="0.500611;0.499389" orientation="-">
+       <DockArea name="X">
+        <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+         <range left="-15.321096" right="-0.346681" bottom="-0.009879" top="0.010530"/>
+         <limitY/>
+         <curve color="#bcbd22" name="/debug/target_twist/angular/x"/>
+         <curve color="#000000" name="/target/odom/twist/twist/angular/x"/>
+        </plot>
+       </DockArea>
+       <DockArea name="Z">
+        <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+         <range left="-15.321096" right="-0.346681" bottom="-0.117277" top="0.116259"/>
+         <limitY/>
+         <curve color="#d62728" name="/debug/target_twist/angular/z"/>
+         <curve color="#000000" name="/target/odom/twist/twist/angular/z"/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+      <DockSplitter count="2" sizes="0.500611;0.499389" orientation="-">
+       <DockArea name="Y">
+        <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+         <range left="-15.321096" right="-0.346681" bottom="-0.194763" top="0.247743"/>
+         <limitY/>
+         <curve color="#1f77b4" name="/debug/target_twist/angular/y"/>
+         <curve color="#000000" name="/target/odom/twist/twist/angular/y"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
+         <range left="0.000000" right="1.000000" bottom="0.000000" top="1.000000"/>
+         <limitY/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="1"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad CSV">
+   <default delimiter="0" time_axis=""/>
+  </plugin>
+  <plugin ID="DataLoad ROS2 bags">
+   <use_header_stamp value="false"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+   <boolean_strings_to_number value="true"/>
+   <remove_suffix_from_strings value="true"/>
+  </plugin>
+  <plugin ID="DataLoad ULog"/>
+  <plugin ID="ROS2 Topic Subscriber">
+   <use_header_stamp value="false"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+   <boolean_strings_to_number value="true"/>
+   <remove_suffix_from_strings value="true"/>
+  </plugin>
+  <plugin ID="UDP Server"/>
+  <plugin ID="WebSocket Server"/>
+  <plugin ID="Fast Fourier Transform"/>
+  <plugin ID="Quaternion to RPY"/>
+  <plugin ID="Reactive Script Editor">
+   <library code="--[[ Helper function to create a ScatterXY series from arrays.&#xa;&#xa; series_name: name of the created ScatterXY series&#xa; prefix:      prefix of the timeseries, before the index of the array&#xa; suffix_X:   suffix to complete the name of the series containing the X value.&#xa;             if [nil], the index of the array will be used.&#xa; suffix_Y:   suffix to complete the name of the series containing the Y value&#xa; timestamp:   usually the tracker_time variable&#xa;              &#xa; Example:&#xa; &#xa; Assuming we have multiple series in the form:&#xa; &#xa;   /trajectory/node.{N}/position/x&#xa;   /trajectory/node.{N}/position/y&#xa;   &#xa; where {N} is the index of the array (integer). We can create a reactive series from the array with:&#xa; &#xa;   CreateSeriesFromArray( &quot;my_trajectory&quot;, &quot;/trajectory/node&quot;,  &quot;position/x&quot;, &quot;position/y&quot;, tracker_time );&#xa;]]--&#xa;&#xa;function CreateSeriesFromArray( series_name, prefix, suffix_X, suffix_Y, timestamp )&#xa;  --- create a new series or overwite the previous one&#xa;  new_series = MutableScatterXY.new(series_name)&#xa;  &#xa;  --- Append points to new_series&#xa;  index = 0&#xa;  while(true) do&#xa;&#xa;    x = index;&#xa;    -- if not nil, get the X coordinate from a series&#xa;    if suffix_X ~= nil then &#xa;      series_x = TimeseriesView.find( string.format( &quot;%s.%d/%s&quot;, prefix, index, suffix_X) )&#xa;      if series_x == nil then break end&#xa;      x = series_x:atTime(timestamp)&#x9; &#xa;    end&#xa;    &#xa;    series_y = TimeseriesView.find( string.format( &quot;%s.%d/%s&quot;, prefix, index, suffix_Y) )&#xa;    if series_x == nil then break end &#xa;    y = series_y:atTime(timestamp)&#xa;    &#xa;    new_series:push_back(x,y)&#xa;    index = index+1&#xa;  end&#xa;end&#xa;"/>
+   <scripts/>
+  </plugin>
+  <plugin ID="CSV Exporter"/>
+  <plugin ID="ROS2 Topic Re-Publisher"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS2 Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets/>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+

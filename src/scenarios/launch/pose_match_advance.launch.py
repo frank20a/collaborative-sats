@@ -61,6 +61,7 @@ def generate_launch_description():
             executable = 'pose_match',
             parameters=[{
                 'nc': nc,
+                'verbose': 2,
             }]
         )
     )
@@ -147,7 +148,8 @@ def generate_launch_description():
             executable = 'combine_estimations',
             parameters =[{
                 'duration': False,
-                'use_sim_time': True
+                'use_sim_time': True,
+                'num_chasers': nc,
             }],
         )
     )

@@ -112,6 +112,10 @@ def pose2array_euler(pose: Pose) -> np.ndarray:
     return np.array([pose.position.x, pose.position.y, pose.position.z, eul[0], eul[1], eul[2]])
 
 
+def quaternion_inverse(q):
+    return (-q[0], -q[1], -q[2], q[3])
+
+
 # Temporary until difference includeds Twist too... for now zero target twist is assumed
 def get_state(odom: Odometry) -> np.ndarray:
 

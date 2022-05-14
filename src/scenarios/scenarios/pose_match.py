@@ -60,7 +60,7 @@ def main(args=None):
         
         if node.target_tf is None:
             try:
-                node.target_tf = node.buffer.lookup_transform('world', (node.get_namespace() + '/target_body').lstrip('/'), Time(seconds=0))
+                node.target_tf = node.buffer.lookup_transform('world', ('/estimated_pose').lstrip('/'), Time(seconds=0))
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
     
