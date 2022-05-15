@@ -112,8 +112,8 @@ def stage_cost(xs, ref, offset, us, Qs, Qi):
 
         # orientation
         tmp = quaternion_multiply(
-            off[3:7],
             ref[6:10],
+            off[3:7],
         )
         q_err = quaternion_multiply(
             x[6:10],
@@ -137,26 +137,26 @@ def final_cost(x, ref, offset, Qf):
 
 
 def crash_constraint(xs, ref):
-    res = 0
-
-    for i, x in enumerate(xs):
-        res = cs.vertcat(res, cs.fmax(
-            0,
-            -cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 + (x[2] - ref[2])**2 ) + 0.3,
-        ))
-
-        for j in range(i, nc):
-            res = cs.vertcat(res, cs.fmax(
-                0,
-                -cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2 + (x[2] - xs[j][2])**2 ) + 0.3,
-            ))
+    res = []
 
     # for i, x in enumerate(xs):
-    #     res = cs.vertcat(res, cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 + (x[2] - ref[2])**2 ) - 0.3)
+    #     res = cs.vertcat(res, cs.fmax(
+    #         0,
+    #         -cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 + (x[2] - ref[2])**2 ) + 0.3,
+    #     ))
 
     #     for j in range(i, nc):
-    #         res = cs.vertcat(res, cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2 + (x[2] - xs[j][2])**2 ) - 0.3)
-    
+    #         res = cs.vertcat(res, cs.fmax(
+    #             0,
+    #             -cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2 + (x[2] - xs[j][2])**2 ) + 0.3,
+    #         ))
+
+    for i, x in enumerate(xs):
+        res.append(cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 + (x[2] - ref[2])**2 ))
+
+        for j in range(i+1, nc):
+            res.append(cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2 + (x[2] - xs[j][2])**2 ))
+
     return res
 
 
@@ -172,7 +172,7 @@ final_weights = p[nx * (nc + 1) + 7*nc + + 6 : nx * (nc + 1) + 7*nc + + 10]
 xt = x0
 xt_tar = x0_tar
 cost = 0
-constr = 0
+constr = []
 for i in range(mpc_horizon):
     ut = [u[i*nu*nc + j*nu: i*nu*nc + (j+1)*nu] for j in range(nc)]
     
@@ -180,7 +180,7 @@ for i in range(mpc_horizon):
     cost += stage_cost(xt, xt_tar, offset, ut, state_weights * (1-0.02*i), input_weights)
 
     # Include crash constraint
-    constr = cs.vertcat(constr, crash_constraint(xt, xt_tar))
+    constr = constr + crash_constraint(xt, xt_tar)
     
     # Move to next time step
     for j in range(nc):
@@ -190,6 +190,13 @@ for i in range(mpc_horizon):
 # Final error
 cost += final_cost(xt, xt_tar, offset, final_weights)
 
+# Finallize constraints
+tmp = cs.SX(len(constr), 1)
+for i, c in enumerate(constr):
+    tmp[i] = c
+constr = tmp
+print (constr.shape)
+
 # Bound control outputs
 umax = [force, force, force, torque, torque, torque] * mpc_horizon
 umin = [-force, -force, -force, -torque, -torque, -torque] * mpc_horizon
@@ -197,17 +204,17 @@ bounds = og.constraints.Rectangle(umin, umax)
 
 
 problem = og.builder.Problem(u, p, cost)    \
+    .with_aug_lagrangian_constraints(
+        constr, 
+        og.constraints.Rectangle(xmin = [0.25] * constr.shape[0], xmax = [1e4] * constr.shape[0]), 
+        og.constraints.BallInf(None, 1e12)
+    )       \
     .with_constraints(bounds)               \
-    .with_penalty_constraints(constr)       \
-    # .with_aug_lagrangian_constraints(
-    #     constr, 
-    #     og.constraints.Rectangle(xmin = [0.3] * constr.shape[0], xmax = [1e12] * constr.shape[0]), 
-    #     og.constraints.BallInf(None, 1e12)
-    # )       \
+    # .with_penalty_constraints(constr)       \
 
 
 meta = og.config.OptimizerMeta()        \
-    .with_version('0.2.0')              \
+    .with_version('0.3.2')              \
     .with_authors(['Frank Fourlas'])    \
     .with_licence('MIT')                \
     .with_optimizer_name('pose_match_mpc')

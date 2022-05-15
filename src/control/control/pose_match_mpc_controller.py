@@ -40,7 +40,7 @@ class MPCController2(Node):
         self.declare_parameter('nc', nc)
         self.declare_parameter('freq', 30.0)
         self.declare_parameter('ra_len', 9)
-        self.declare_parameter('dock_dist', 0.3)
+        self.declare_parameter('dock_dist', 0.4)
         self.declare_parameter('dock_vel', 0.07)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
@@ -60,6 +60,7 @@ class MPCController2(Node):
 
         # Generate offset
         self.offset = np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64)
+        # self.offset = np.array([1, 0, 0, 0, 0, 1, 0], dtype=np.float64)
         if self.nc > 1:
             self.offset = np.concatenate((self.offset, np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
         if self.nc > 2:
@@ -195,10 +196,10 @@ class MPCController2(Node):
         if self.verbose > 1:
             for i in range(self.nc):
                 tmp = Pose()
-                ttmp = vector_rotate_quaternion(self.chaser_states[i][0:3], quaternion_inverse(target_state[6:10]))
-                tmp.position.x = ttmp[0] - target_state[0]
-                tmp.position.y = ttmp[1] - target_state[1]
-                tmp.position.z = ttmp[2] - target_state[2]
+                ttmp = vector_rotate_quaternion(self.chaser_states[i][0:3] - target_state[0:3], quaternion_inverse(target_state[6:10]))
+                tmp.position.x = float(ttmp[0])
+                tmp.position.y = float(ttmp[1])
+                tmp.position.z = float(ttmp[2])
                 tmp1 = quaternion_multiply(self.chaser_states[i][6:10], quaternion_inverse(target_state[6:10]))
                 tmp.orientation.x = tmp1[0]
                 tmp.orientation.y = tmp1[1]
