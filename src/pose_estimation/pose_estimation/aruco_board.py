@@ -87,6 +87,7 @@ class ArucoBoardPoseEstimator(Node):
         
         # Read image and undistort
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         t = self.get_estimation(img)
         if t is None: return
         t.header.stamp = msg.header.stamp
