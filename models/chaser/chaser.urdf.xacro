@@ -24,6 +24,7 @@
             <geometry>
                 <box size="${body_dim}"/>
             </geometry>
+
         </visual>
 
         <visual name="leg_1">
@@ -31,6 +32,8 @@
             <geometry>
                 <cylinder radius="${leg_r}" length="${leg_len}"/>
             </geometry>
+
+            <material name="white"/>
         </visual>
 
         <visual name="leg_2">
@@ -38,6 +41,8 @@
             <geometry>
                 <cylinder radius="${leg_r}" length="${leg_len}"/>
             </geometry>
+
+            <material name="white"/>
         </visual>
 
         <visual name="leg_3">
@@ -45,6 +50,8 @@
             <geometry>
                 <cylinder radius="${leg_r}" length="${leg_len}"/>
             </geometry>
+
+            <material name="white"/>
         </visual>
 
         <visual name="leg_4">
@@ -52,6 +59,8 @@
             <geometry>
                 <cylinder radius="${leg_r}" length="${leg_len}"/>
             </geometry>
+
+            <material name="white"/>
         </visual>
 
         <visual name="head_vis">
@@ -59,6 +68,8 @@
             <geometry>
                 <cylinder radius="${head_r}" length="${head_len}"/>
             </geometry>
+
+            <material name="white"/>
         </visual>
 
         <xacro:inertial_box mass="30.0" x="${body_x}" y="${body_y}" z="${body_z}">
@@ -72,14 +83,17 @@
         <child link="body"/>
     </joint> -->
 
-    <!-- Camera L -->
+    <!-- Camera -->
     <link name="camera">
         <visual>
             <origin xyz="${cam_size/2} 0 0"/>
             <geometry>
                 <box size="${cam_size} ${cam_size} ${cam_size}"/>
             </geometry>
+
+            <material name="red"/>
         </visual>
+
     </link>
 
     <joint name="camera_fix" type="fixed">
@@ -97,6 +111,30 @@
         <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
         <parent link="camera"/>
         <child link="camera_optical"/>
+    </joint>
+
+    <!-- Grabber -->
+    <link name="grabber">
+        <visual>
+            <geometry>
+                <cylinder radius="0.01" length="${0.35 - body_x/2}"/>
+            </geometry>
+
+            <material name="black"/>
+        </visual>
+        <visual>
+            <origin xyz="0 0 ${-(0.35 - body_x/2)/2}"/>
+            <geometry>
+                <sphere radius="0.02"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="grabber_fix" type="fixed">
+        <origin xyz="${body_x/2} 0 0" rpy="0 ${-pi/2} 0"/>
+        <parent link="body"/>
+        <child link="grabber"/>
+
     </joint>
     
     <xacro:include filename="gazebo.xacro"/>

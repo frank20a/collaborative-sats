@@ -9,6 +9,9 @@
     <gazebo reference="camera">
         <material>Gazebo/Red</material>
     </gazebo>
+    <gazebo reference="grabber">
+        <material>Gazebo/Blue</material>
+    </gazebo>
 
     <!-- Plugins -->
     <gazebo>
