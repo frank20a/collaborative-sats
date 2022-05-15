@@ -40,8 +40,8 @@ class MPCController2(Node):
         self.declare_parameter('nc', nc)
         self.declare_parameter('freq', 30.0)
         self.declare_parameter('ra_len', 9)
-        self.declare_parameter('dock_dist', 0.35)
-        self.declare_parameter('dock_vel', 0.1)
+        self.declare_parameter('dock_dist', 0.3)
+        self.declare_parameter('dock_vel', 0.07)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.nc = self.get_parameter('nc').get_parameter_value().integer_value
@@ -50,7 +50,8 @@ class MPCController2(Node):
         self.dock_dist = self.get_parameter('dock_dist').get_parameter_value().double_value
         self.dock_vel = 1 - self.get_parameter('dock_vel').get_parameter_value().double_value * self.dt
 
-        self.target_state = None
+        self.target_pose = None
+        self.target_twist = None
         self.prev_target_state = [None] * self.ra_len
         self.chaser_states = [None] * self.nc
         self.cmd = Wrench()
@@ -77,14 +78,16 @@ class MPCController2(Node):
                 partial(self.get_odom, i),
                 QoSPresetProfiles.get_from_short_key('sensor_data')
             )
-        self.create_subscription(Empty, 'toggle_approach', self.approach_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.create_subscription(Empty, 'toggle_command', self.command_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
         for i in range(self.nc):
             self.create_subscription(
                 Empty, 
-                'toggle_command', 
-                partial(self.command_callback, i), 
+                f'chaser_{i}/toggle_approach', 
+                partial(self.approach_callback, i), 
                 QoSPresetProfiles.get_from_short_key('sensor_data')
             )
+        self.create_subscription(Pose, 'target/estimated_pose', self.set_target_pose, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.create_subscription(Twist, 'target/estimated_twist', self.set_target_twist, QoSPresetProfiles.get_from_short_key('sensor_data'))
 
         # Publishers
         self.pubs = [self.create_publisher(
@@ -110,8 +113,8 @@ class MPCController2(Node):
         self.get_logger().info("Command flag set to {}".format(self.cmd_flag))
 
     def approach_callback(self, chaser_num, msg):
-        self.approach_flag = not self.approach_flag
-        self.get_logger().info("Approach flag set to {}".format(self.approach_flag))
+        self.approach_flag[chaser_num] = not self.approach_flag[chaser_num]
+        self.get_logger().info("Approach flag {} set to {}".format(chaser_num, self.approach_flag))
 
     def get_odom(self, chaser_num, msg: Odometry):
         # self.get_logger().info("Got chaser {}".format(chaser_num))
@@ -119,12 +122,28 @@ class MPCController2(Node):
             self.chaser_states[chaser_num] = get_state(msg)
 
     def callback(self):
-        if self.target_state is None or any(map(lambda x: x is None, self.chaser_states)) or not self.cmd_flag: return
+        if self.target_pose is None or self.target_twist is None or any(map(lambda x: x is None, self.chaser_states)) or not self.cmd_flag: return
+        target_state = np.array([
+            self.target_pose.position.x,
+            self.target_pose.position.y,
+            self.target_pose.position.z,
+            self.target_twist.linear.x,
+            self.target_twist.linear.y,
+            self.target_twist.linear.z,
+            self.target_pose.orientation.x,
+            self.target_pose.orientation.y,
+            self.target_pose.orientation.z,
+            self.target_pose.orientation.w,
+            self.target_twist.angular.x,
+            self.target_twist.angular.y,
+            self.target_twist.angular.z
+        ], dtype=np.float64)
+        self.get_logger().info(f"{target_state}")
 
         # Call the optimizer
         p = np.concatenate((
             np.concatenate(self.chaser_states),     # State of each chaser
-            self.target_state,                      # Target state
+            target_state,                      # Target state
             self.offset,                            # Offsets from target state for chasers
             mpc_state_weights,                      # State weights
             mpc_input_weights,                      # Input weights
@@ -155,125 +174,59 @@ class MPCController2(Node):
         
         if self.verbose > 1:
             tmp = Pose()
-            tmp.position.x = self.target_state[0]
-            tmp.position.y = self.target_state[1]
-            tmp.position.z = self.target_state[2]
-            tmp.orientation.x = self.target_state[6]
-            tmp.orientation.y = self.target_state[7]
-            tmp.orientation.z = self.target_state[8]
-            tmp.orientation.w = self.target_state[9]
+            tmp.position.x = target_state[0]
+            tmp.position.y = target_state[1]
+            tmp.position.z = target_state[2]
+            tmp.orientation.x = target_state[6]
+            tmp.orientation.y = target_state[7]
+            tmp.orientation.z = target_state[8]
+            tmp.orientation.w = target_state[9]
             self.d_tp.publish(tmp)
 
             tmp = Twist()
-            tmp.linear.x = self.target_state[3]
-            tmp.linear.y = self.target_state[4]
-            tmp.linear.z = self.target_state[5]
-            tmp.angular.x = self.target_state[10]
-            tmp.angular.y = self.target_state[11]
-            tmp.angular.z = self.target_state[12]
+            tmp.linear.x = target_state[3]
+            tmp.linear.y = target_state[4]
+            tmp.linear.z = target_state[5]
+            tmp.angular.x = target_state[10]
+            tmp.angular.y = target_state[11]
+            tmp.angular.z = target_state[12]
             self.d_tt.publish(tmp)
 
             for i in range(self.nc):
                 tmp = Pose()
-                tmp.position.x = self.chaser_states[i][0] - self.target_state[0]
-                tmp.position.y = self.chaser_states[i][1] - self.target_state[1]
-                tmp.position.z = self.chaser_states[i][2] - self.target_state[2]
-                tmp1 = quaternion_multiply(self.chaser_states[i][6:10], quaternion_inverse(self.target_state[6:10]))
+                tmp.position.x = self.chaser_states[i][0] - target_state[0]
+                tmp.position.y = self.chaser_states[i][1] - target_state[1]
+                tmp.position.z = self.chaser_states[i][2] - target_state[2]
+                tmp1 = quaternion_multiply(self.chaser_states[i][6:10], quaternion_inverse(target_state[6:10]))
                 tmp.orientation.x = tmp1[0]
                 tmp.orientation.y = tmp1[1]
                 tmp.orientation.z = tmp1[2]
                 tmp.orientation.w = tmp1[3]
                 self.d_rp[i].publish(tmp)
 
-        if self.approach_flag:
-            for i in range(self.nc):
+        for i in range(self.nc):
+            if self.approach_flag[i]:
                 self.offset[i*7 + 0] = sgn(self.offset[i*7 + 0]) * max(abs(self.offset[i*7 + 0] * self.dock_vel), self.dock_dist)
                 self.offset[i*7 + 1] = sgn(self.offset[i*7 + 1]) * max(abs(self.offset[i*7 + 1] * self.dock_vel), self.dock_dist)
                 self.offset[i*7 + 2] = sgn(self.offset[i*7 + 2]) * max(abs(self.offset[i*7 + 2] * self.dock_vel), self.dock_dist)
 
-            self.get_logger().info("Approaching: {}".format(self.offset))
+            # self.get_logger().info("Approaching {}: {}".format(i, self.offset))
 
-        self.target_state = None
+        self.target_pose = None
+        self.target_twist = None
         self.chaser_states = [None] * self.nc
 
-    def get_target_state(self, msg: TransformStamped):
-        # self.get_logger().info("Got target")
-        if any(map(lambda x: x is None, self.prev_target_state)): 
-            tmp = np.array([
-                msg.transform.translation.x,
-                msg.transform.translation.y,
-                msg.transform.translation.z,
-                0,
-                0,
-                0,
-                msg.transform.rotation.x,
-                msg.transform.rotation.y,
-                msg.transform.rotation.z,
-                msg.transform.rotation.w,
-                0,
-                0,
-                0
-            ], dtype=np.float64)
-            tmp[6:10] /= np.linalg.norm(tmp[6:10])
-            self.prev_target_state = self.prev_target_state[1:] + [tmp]
-        else:
+    def set_target_pose(self, msg: Pose):
+        self.target_pose = msg
 
-            # Calculate velocity
-            v = [
-                (msg.transform.translation.x - self.prev_target_state[-1][0]) / self.dt,
-                (msg.transform.translation.y - self.prev_target_state[-1][1]) / self.dt,
-                (msg.transform.translation.z - self.prev_target_state[-1][2]) / self.dt,
-            ]
-
-            # Calculate omega
-            eul = np.array(euler_from_quaternion([
-                msg.transform.rotation.x,
-                msg.transform.rotation.y, 
-                msg.transform.rotation.z, 
-                msg.transform.rotation.w])) - np.array(euler_from_quaternion(self.prev_target_state[-1][6:10]))
-            omega = eul / self.dt
-
-            # Create state vector
-            tmp = np.array([
-                msg.transform.translation.x,
-                msg.transform.translation.y,
-                msg.transform.translation.z,
-                floor_(v[0], 0.1),
-                floor_(v[1], 0.1),
-                floor_(v[2], 0.1),
-                msg.transform.rotation.x,
-                msg.transform.rotation.y,
-                msg.transform.rotation.z,
-                msg.transform.rotation.w,
-                floor_(omega[0], 0.02),
-                floor_(omega[1], 0.02),
-                floor_(omega[2], 0.02),
-            ], dtype=np.float64)
-            tmp[6:10] /= np.linalg.norm(tmp[6:10])
-
-            # Don't update on huge changes
-            for j in [3, 4, 5, 10, 11, 12]:
-                tmp[j] = tmp[j] if abs(tmp[j] - self.prev_target_state[-1][j]) < 10 else self.prev_target_state[-1][j]
-
-            self.prev_target_state = self.prev_target_state[1:] + [tmp]
-            for j in [3, 4, 5, 10, 11, 12]:
-                tmp[j]  = floor_(sum([self.prev_target_state[i][j] for i in range(self.ra_len)]) / self.ra_len, 0.02)
-
-        self.target_state = tmp
+    def set_target_twist(self, msg: Twist):
+        self.target_twist = msg
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = MPCController2()
-
-    while rclpy.ok():
-        rclpy.spin_once(node)
-        
-        if node.target_state is None:
-            try:
-                node.get_target_state(node.buffer.lookup_transform('world', 'estimated_pose', Time(seconds=0)))
-            except (LookupException, ConnectivityException, ExtrapolationException):
-                pass
+    rclpy.spin(node)
 
     node.destroy_node()
     rclpy.shutdown()

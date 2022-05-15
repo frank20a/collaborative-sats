@@ -26,7 +26,7 @@ class CombineEstimations(Node):
         self.declare_parameter('num_chasers', 2)
         self.declare_parameter('freq', 30.0)
         self.declare_parameter('verbose', 0)
-        self.declare_parameter('topics', True)
+        self.declare_parameter('topics', False)
         self.declare_parameter('ra_len', 9)
         
         self.num_chasers = self.get_parameter('num_chasers').get_parameter_value().integer_value

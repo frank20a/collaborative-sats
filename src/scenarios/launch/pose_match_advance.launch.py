@@ -138,7 +138,7 @@ def generate_launch_description():
                 package = 'control',
                 executable = 'thruster_pwm',
                 namespace = 'chaser_' + str(i),
-            )
+            ),
         )
 
     # Estimation combiner
@@ -148,9 +148,11 @@ def generate_launch_description():
             executable = 'combine_estimations',
             parameters =[{
                 'duration': False,
-                'use_sim_time': True,
+                'use_sim_time': False,
                 'num_chasers': nc,
+                'topics': True,
             }],
+            namespace = 'target',
         )
     )
 
