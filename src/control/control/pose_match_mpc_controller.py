@@ -7,7 +7,7 @@ from std_msgs.msg import Empty
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
 from tf_transformations import euler_from_quaternion
-from .tf_utils import get_state
+from .tf_utils import get_state, vector_rotate_quaternion
 from tf2_ros import LookupException, ExtrapolationException, ConnectivityException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -74,18 +74,23 @@ class MPCController2(Node):
         for i in range(self.nc):
             self.create_subscription(
                 Odometry,
-                'chaser_' + str(i) + '/odom',
-                partial(self.get_odom, i),
+                f'chaser_{i}/odom',
+                partial(self.odometry_callback, i),
                 QoSPresetProfiles.get_from_short_key('sensor_data')
             )
-        self.create_subscription(Empty, 'toggle_command', self.command_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
-        for i in range(self.nc):
             self.create_subscription(
                 Empty, 
                 f'chaser_{i}/toggle_approach', 
                 partial(self.approach_callback, i), 
-                QoSPresetProfiles.get_from_short_key('sensor_data')
+                QoSPresetProfiles.get_from_short_key('system_default')
             )
+            self.create_subscription(
+                Pose,
+                f'chaser_{i}/relative_setpoint',
+                partial(self.setpoint_callback, i),
+                QoSPresetProfiles.get_from_short_key('system_default')
+            )
+        self.create_subscription(Empty, 'toggle_control', self.control_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
         self.create_subscription(Pose, 'target/estimated_pose', self.set_target_pose, QoSPresetProfiles.get_from_short_key('sensor_data'))
         self.create_subscription(Twist, 'target/estimated_twist', self.set_target_twist, QoSPresetProfiles.get_from_short_key('sensor_data'))
 
@@ -96,8 +101,6 @@ class MPCController2(Node):
             QoSPresetProfiles.get_from_short_key('system_default')
         ) for i in range(self.nc)]
         if self.verbose > 1:
-            self.d_tp = self.create_publisher(Pose, '/debug/target_pose', QoSPresetProfiles.get_from_short_key('sensor_data'))
-            self.d_tt = self.create_publisher(Twist, '/debug/target_twist', QoSPresetProfiles.get_from_short_key('sensor_data'))
             self.d_rp = [self.create_publisher(Pose, '/debug/relative_pose_{}'.format(i), QoSPresetProfiles.get_from_short_key('sensor_data')) for i in range(self.nc)]
 
 
@@ -108,18 +111,35 @@ class MPCController2(Node):
         # Callback to run controller
         self.create_timer(self.dt / 15, self.callback)
 
-    def command_callback(self, msg):
+    def setpoint_callback(self, chaser_num: int, msg: Pose):
+        self.offset[7*chaser_num: 7*(chaser_num+1)] = np.array([
+            msg.position.x,
+            msg.position.y,
+            msg.position.z,
+            msg.orientation.x,
+            msg.orientation.y,
+            msg.orientation.z,
+            msg.orientation.w
+        ], dtype=np.float64)
+
+    def control_callback(self, msg: Empty):
         self.cmd_flag = not self.cmd_flag
         self.get_logger().info("Command flag set to {}".format(self.cmd_flag))
 
-    def approach_callback(self, chaser_num, msg):
+    def approach_callback(self, chaser_num: int, msg: Empty):
         self.approach_flag[chaser_num] = not self.approach_flag[chaser_num]
         self.get_logger().info("Approach flag {} set to {}".format(chaser_num, self.approach_flag))
 
-    def get_odom(self, chaser_num, msg: Odometry):
+    def odometry_callback(self, chaser_num: int, msg: Odometry):
         # self.get_logger().info("Got chaser {}".format(chaser_num))
         if self.chaser_states[chaser_num] is None:
             self.chaser_states[chaser_num] = get_state(msg)
+
+    def set_target_pose(self, msg: Pose):
+        self.target_pose = msg
+
+    def set_target_twist(self, msg: Twist):
+        self.target_twist = msg
 
     def callback(self):
         if self.target_pose is None or self.target_twist is None or any(map(lambda x: x is None, self.chaser_states)) or not self.cmd_flag: return
@@ -138,7 +158,7 @@ class MPCController2(Node):
             self.target_twist.angular.y,
             self.target_twist.angular.z
         ], dtype=np.float64)
-        self.get_logger().info(f"{target_state}")
+        # self.get_logger().info(f"{target_state}")
 
         # Call the optimizer
         p = np.concatenate((
@@ -173,30 +193,12 @@ class MPCController2(Node):
                 self.pubs[i].publish(self.cmd)
         
         if self.verbose > 1:
-            tmp = Pose()
-            tmp.position.x = target_state[0]
-            tmp.position.y = target_state[1]
-            tmp.position.z = target_state[2]
-            tmp.orientation.x = target_state[6]
-            tmp.orientation.y = target_state[7]
-            tmp.orientation.z = target_state[8]
-            tmp.orientation.w = target_state[9]
-            self.d_tp.publish(tmp)
-
-            tmp = Twist()
-            tmp.linear.x = target_state[3]
-            tmp.linear.y = target_state[4]
-            tmp.linear.z = target_state[5]
-            tmp.angular.x = target_state[10]
-            tmp.angular.y = target_state[11]
-            tmp.angular.z = target_state[12]
-            self.d_tt.publish(tmp)
-
             for i in range(self.nc):
                 tmp = Pose()
-                tmp.position.x = self.chaser_states[i][0] - target_state[0]
-                tmp.position.y = self.chaser_states[i][1] - target_state[1]
-                tmp.position.z = self.chaser_states[i][2] - target_state[2]
+                ttmp = vector_rotate_quaternion(self.chaser_states[i][0:3], quaternion_inverse(target_state[6:10]))
+                tmp.position.x = ttmp[0] - target_state[0]
+                tmp.position.y = ttmp[1] - target_state[1]
+                tmp.position.z = ttmp[2] - target_state[2]
                 tmp1 = quaternion_multiply(self.chaser_states[i][6:10], quaternion_inverse(target_state[6:10]))
                 tmp.orientation.x = tmp1[0]
                 tmp.orientation.y = tmp1[1]
@@ -215,12 +217,6 @@ class MPCController2(Node):
         self.target_pose = None
         self.target_twist = None
         self.chaser_states = [None] * self.nc
-
-    def set_target_pose(self, msg: Pose):
-        self.target_pose = msg
-
-    def set_target_twist(self, msg: Twist):
-        self.target_twist = msg
 
 
 def main(args=None):

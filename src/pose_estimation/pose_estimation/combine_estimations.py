@@ -14,7 +14,7 @@ import numpy as np
 
 
 abs = lambda x: x if x > 0 else -x
-floor_ = lambda x, n=1e-2: x if abs(x) > n else 0.0
+floor_ = lambda x, n=1e-4: x if abs(x) > n else 0.0
 sgn = lambda x: (1 if x > 0 else -1) if floor_(x, 1e-2) != 0 else 0
 
 
@@ -156,9 +156,9 @@ class CombineEstimations(Node):
             # Post-process velocity
             for i in range(3):
                 v[i] = v[i] if abs(v[i] - self.prev_vels[-1][i]) < 10 else self.prev_vels[-1][i]
-                v[i] = floor_(v[i], 0.1)
+                # v[i] = floor_(v[i], 0.1)
                 omega[i] = omega[i] if abs(omega[i] - self.prev_vels[-1][i + 3]) < 2 else self.prev_vels[-1][i + 3]
-                omega[i] = floor_(omega[i], 0.035)
+                # omega[i] = floor_(omega[i], 0.035)
         
         self.prev_state = np.array([
             p.position.x,
