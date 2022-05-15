@@ -15,28 +15,28 @@ nx = 13             # Number of states
 
 solo_tuning = {
     'mpc_state_weights': [
-        300,     # position
+        225,     # position
         0,      # velocity
-        500,     # orientation
+        105,     # orientation
         0       # omega
     ],
     'mpc_input_weights': [   
-        3,    # force
-        50      # torque
+        1.5,    # force
+        40      # torque
     ],
 }
 solo_tuning['mpc_final_weights'] = [50 * i for i in solo_tuning['mpc_state_weights']]
 
 dueto_tuning = {
     'mpc_state_weights': [
-        300,     # position
+        350,     # position
         0,      # velocity
-        500,     # orientation
+        175,     # orientation
         0       # omega
     ],
     'mpc_input_weights': [   
-        3,    # force
+        2,      # force
         50      # torque
     ],
 }
-dueto_tuning['mpc_final_weights'] = [50 * i for i in solo_tuning['mpc_state_weights']]
+dueto_tuning['mpc_final_weights'] = [20 * i for i in solo_tuning['mpc_state_weights']]

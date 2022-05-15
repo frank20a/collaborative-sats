@@ -177,15 +177,15 @@ for i in range(mpc_horizon):
     ut = [u[i*nu*nc + j*nu: i*nu*nc + (j+1)*nu] for j in range(nc)]
     
     # Update cost function
-    cost += stage_cost(xt, xt_tar, offset, ut, state_weights, input_weights)
+    cost += stage_cost(xt, xt_tar, offset, ut, state_weights * (1-0.02*i), input_weights)
+
+    # Include crash constraint
+    constr = cs.vertcat(constr, crash_constraint(xt, xt_tar))
     
     # Move to next time step
     for j in range(nc):
         xt[j] = chaser_dynamics_dt(xt[j], ut[j])
     xt_tar = target_dynamics_dt(xt_tar)
-
-    # Include crash constraint
-    constr = cs.vertcat(constr, crash_constraint(xt, xt_tar))
 
 # Final error
 cost += final_cost(xt, xt_tar, offset, final_weights)
@@ -198,7 +198,7 @@ bounds = og.constraints.Rectangle(umin, umax)
 
 problem = og.builder.Problem(u, p, cost)    \
     .with_constraints(bounds)               \
-    # .with_penalty_constraints(constr)       \
+    .with_penalty_constraints(constr)       \
     # .with_aug_lagrangian_constraints(
     #     constr, 
     #     og.constraints.Rectangle(xmin = [0.3] * constr.shape[0], xmax = [1e12] * constr.shape[0]), 

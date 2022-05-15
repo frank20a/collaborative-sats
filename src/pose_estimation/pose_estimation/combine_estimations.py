@@ -27,7 +27,7 @@ class CombineEstimations(Node):
         self.declare_parameter('freq', 30.0)
         self.declare_parameter('verbose', 0)
         self.declare_parameter('topics', False)
-        self.declare_parameter('ra_len', 9)
+        self.declare_parameter('ra_len', 11)
         
         self.num_chasers = self.get_parameter('num_chasers').get_parameter_value().integer_value
         self.dt = 1 / self.get_parameter('freq').get_parameter_value().double_value
@@ -155,9 +155,9 @@ class CombineEstimations(Node):
 
             # Post-process velocity
             for i in range(3):
-                v[i] = v[i] if abs(v[i] - self.prev_vels[-1][i]) < 10 else self.prev_vels[-1][i]
+                v[i] = v[i] if abs(v[i] - self.prev_vels[-1][i]) < 3 else self.prev_vels[-1][i]
                 # v[i] = floor_(v[i], 0.1)
-                omega[i] = omega[i] if abs(omega[i] - self.prev_vels[-1][i + 3]) < 2 else self.prev_vels[-1][i + 3]
+                omega[i] = omega[i] if abs(omega[i] - self.prev_vels[-1][i + 3]) < 1.5 else self.prev_vels[-1][i + 3]
                 # omega[i] = floor_(omega[i], 0.035)
         
         self.prev_state = np.array([

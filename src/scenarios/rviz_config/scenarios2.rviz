@@ -133,6 +133,20 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        body:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: Chaser 1 Model
       TF Prefix: chaser_1
       Update Interval: 0
@@ -151,6 +165,14 @@ Visualization Manager:
           Value: true
         chaser_0/estimated_pose:
           Value: false
+        chaser_1/body:
+          Value: true
+        chaser_1/camera:
+          Value: false
+        chaser_1/camera_optical:
+          Value: true
+        chaser_1/estimated_pose:
+          Value: false
         estimated_pose:
           Value: true
         target_body:
@@ -168,6 +190,11 @@ Visualization Manager:
             chaser_0/camera:
               chaser_0/camera_optical:
                 chaser_0/estimated_pose:
+                  {}
+          chaser_1/body:
+            chaser_1/camera:
+              chaser_1/camera_optical:
+                chaser_1/estimated_pose:
                   {}
           estimated_pose:
             target_body:
@@ -234,25 +261,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.0980613231658936
+      Distance: 2.947625160217285
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.2819022536277771
-        Y: 0.3838661015033722
-        Z: 0.4962061643600464
+        X: -0.3311117887496948
+        Y: 0.23345604538917542
+        Z: 0.2907087802886963
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6562474370002747
+      Pitch: 0.6762472987174988
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.396197319030762
+      Yaw: 4.601195335388184
     Saved: ~
 Window Geometry:
   Aruco 0 Verbose:
