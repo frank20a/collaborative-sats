@@ -16,7 +16,7 @@ setup(
     maintainer='Frank Fourlas',
     maintainer_email='frank.fourlas@gmail.com',
     description='This package provides a Kalman filters for rigid body tracking',
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

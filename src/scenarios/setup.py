@@ -24,7 +24,7 @@ setup(
     maintainer='Frank Fourlas',
     maintainer_email='frank.fourlas@gmail.com',
     description='Different control scenarios to test the control method',
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

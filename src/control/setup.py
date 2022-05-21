@@ -21,7 +21,7 @@ setup(
     maintainer='Frank Fourlas',
     maintainer_email='frank.fourlas@gmail.com',
     description='A package containing various controllers for the chasers.',
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

@@ -24,7 +24,7 @@ setup(
     maintainer='Frank Fourlas',
     maintainer_email='frank.fourlas@gmail.com',
     description='A package dedicated to estimating the pose of a target in various scenarios',
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

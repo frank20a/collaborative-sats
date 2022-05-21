@@ -23,7 +23,7 @@ setup(
     maintainer='Frank Fourlas',
     maintainer_email='frank.fourlas@gmail.com',
     description='Utillities for other packages',
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
