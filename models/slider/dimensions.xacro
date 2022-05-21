@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Body --> 
+    <xacro:property name="body_x" value="0.4"/>
+    <xacro:property name="body_y" value="${body_x}"/>
+    <xacro:property name="body_z" value="0.237"/>
+    <xacro:property name="body_dim" value="${body_x} ${body_y} ${body_z}"/>
+
+    <!-- Cameras -->
+    <xacro:property name="cam_size" value="0.025"/>
+
+    <!-- Inertial -->
+    <xacro:property name="mass" value="4.528"/>
+    <xacro:property name="Izz" value="0.109214481"/>
+
+</robot>

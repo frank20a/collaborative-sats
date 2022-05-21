@@ -1,0 +1,63 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="slider">
+    <xacro:include filename="dimensions.xacro"/>
+    
+    <!-- Body -->
+    <link name="body">
+        <collision name="body_col">
+            <geometry>
+                <box size="${body_dim}"/>
+            </geometry>
+        </collision>
+
+        <visual name="body_vis">
+            <origin rpy="0 0 ${pi}"/>
+            <geometry>
+                <mesh filename="/home/frank20a/dev-ws/models/slider/slider_model_05.stl"/>
+            </geometry>
+        </visual>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass}" />
+            <inertia 
+                ixx="${Izz}" 
+                ixy="0.0"
+                ixz="0.0"
+                iyy="${Izz}" 
+                iyz="0.0"
+                izz="${Izz}" 
+            />
+        </inertial>
+    </link>
+
+    <!-- Camera -->
+    <link name="camera">
+        <visual name="camera_vis">
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="${2*cam_size} ${cam_size} ${cam_size}"/>
+            </geometry>
+        </visual>
+
+    </link>
+
+    <joint name="camera_fix" type="fixed">
+        <origin xyz = "${-0.5*body_x/2} 0 ${body_z / 2 + 0.04}"/>
+        <parent link = "body"/>
+        <child link = "camera"/>
+    </joint>
+
+    <link name="camera_optical"></link>
+    
+    <joint name="camera_optical_joint" type="fixed">
+        <!-- these values have to be these values otherwise the gazebo camera
+            image won't be aligned properly with the frame it is supposedly
+            originating from -->
+        <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+        <parent link="camera"/>
+        <child link="camera_optical"/>
+    </joint>
+    
+    <xacro:include filename="gazebo.xacro"/>
+</robot>
