@@ -28,12 +28,14 @@ class CombineEstimations(Node):
         self.declare_parameter('verbose', 0)
         self.declare_parameter('topics', False)
         self.declare_parameter('ra_len', 11)
+        self.declare_parameter('prefix', 'chaser')
         
         self.num_chasers = self.get_parameter('num_chasers').get_parameter_value().integer_value
         self.dt = 1 / self.get_parameter('freq').get_parameter_value().double_value
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.topics = self.get_parameter('topics').get_parameter_value().bool_value        
         self.ra_len = self.get_parameter('ra_len').get_parameter_value().integer_value
+        self.prefix = self.get_parameter('prefix').get_parameter_value().string_value
 
         
         # create a tf2 buffer and listener
@@ -200,7 +202,7 @@ def main(args=None):
             if node.tfs[i] is not None: continue
             
             try:
-                node.tfs[i] = node.buffer.lookup_transform('world', 'chaser_{}/estimated_pose'.format(i), Time(seconds=0))
+                node.tfs[i] = node.buffer.lookup_transform('world', node.prefix + f'_{i}/estimated_pose', Time(seconds=0))
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
             

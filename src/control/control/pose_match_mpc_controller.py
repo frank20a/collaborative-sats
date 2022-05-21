@@ -42,6 +42,7 @@ class MPCController2(Node):
         self.declare_parameter('ra_len', 9)
         self.declare_parameter('dock_dist', 0.4)
         self.declare_parameter('dock_vel', 0.07)
+        self.declare_parameter('prefix', 'chaser')
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.nc = self.get_parameter('nc').get_parameter_value().integer_value
@@ -49,6 +50,7 @@ class MPCController2(Node):
         self.ra_len = self.get_parameter('ra_len').get_parameter_value().integer_value
         self.dock_dist = self.get_parameter('dock_dist').get_parameter_value().double_value
         self.dock_vel = 1 - self.get_parameter('dock_vel').get_parameter_value().double_value * self.dt
+        self.prefix = self.get_parameter('prefix').get_parameter_value().string_value
 
         self.target_pose = None
         self.target_twist = None
@@ -75,19 +77,19 @@ class MPCController2(Node):
         for i in range(self.nc):
             self.create_subscription(
                 Odometry,
-                f'chaser_{i}/odom',
+                self.prefix + f'_{i}/odom',
                 partial(self.odometry_callback, i),
                 QoSPresetProfiles.get_from_short_key('sensor_data')
             )
             self.create_subscription(
                 Empty, 
-                f'chaser_{i}/toggle_approach', 
+                self.prefix + f'_{i}/toggle_approach', 
                 partial(self.approach_callback, i), 
                 QoSPresetProfiles.get_from_short_key('system_default')
             )
             self.create_subscription(
                 Pose,
-                f'chaser_{i}/relative_setpoint',
+                self.prefix + f'_{i}/relative_setpoint',
                 partial(self.setpoint_callback, i),
                 QoSPresetProfiles.get_from_short_key('system_default')
             )
@@ -98,7 +100,7 @@ class MPCController2(Node):
         # Publishers
         self.pubs = [self.create_publisher(
             Wrench, 
-            'chaser_' + str(i) + '/thrust_cmd', 
+            self.prefix + f'_{i}/thrust_cmd', 
             QoSPresetProfiles.get_from_short_key('system_default')
         ) for i in range(self.nc)]
         if self.verbose > 1:
