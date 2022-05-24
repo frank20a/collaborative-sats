@@ -1,3 +1,6 @@
 [submodule "gazebo-slider"]
 	path = gazebo-slider
 	url = https://github.com/frank20a/gazebo-slider
+[submodule "ORB_SLAM3"]
+	path = ORB_SLAM3
+	url = https://github.com/frank20a/ORB_SLAM3
