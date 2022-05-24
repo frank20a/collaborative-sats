@@ -214,7 +214,7 @@ problem = og.builder.Problem(u, p, cost)    \
 
 
 meta = og.config.OptimizerMeta()        \
-    .with_version('0.3.2')              \
+    .with_version('1.0.0')              \
     .with_authors(['Frank Fourlas'])    \
     .with_licence('MIT')                \
     .with_optimizer_name('pose_match_mpc')

@@ -1,14 +1,11 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.time import Time
 from ament_index_python import get_package_share_directory
-from geometry_msgs.msg import Wrench, TransformStamped, Vector3, Pose, Twist
+from geometry_msgs.msg import Wrench, Pose, Twist
 from std_msgs.msg import Empty
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
-from tf_transformations import euler_from_quaternion
 from .tf_utils import get_state, vector_rotate_quaternion
-from tf2_ros import LookupException, ExtrapolationException, ConnectivityException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -69,9 +66,15 @@ class MPCController2(Node):
             self.offset = np.concatenate((self.offset, np.array([1, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
         
         # Solver
-        sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/pose_match_mpc'))
-        import pose_match_mpc
-        self.solver = pose_match_mpc.solver()
+        if self.prefix == 'chaser':
+            sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/pose_match_mpc'))
+            import pose_match_mpc as optimizer
+        elif self.prefix == 'slider':
+            sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/slider_mpc'))
+            import slider_mpc as optimizer
+        else:
+            raise ValueError('Unknown prefix {}'.format(self.prefix))
+        self.solver = optimizer.solver()
 
         # Subscribers
         for i in range(self.nc):

@@ -25,7 +25,10 @@ def chaser_dynamics_ct(x, u):
     dx[2] = x[5]
 
     # Velocity
-    dx[3:6] = vector_rotate_quaternion(u[0:3], x[6:10]) / m
+    tmp = cs.SX(3, 1)
+    tmp[0] = u[0]
+    tmp[1] = u[1]
+    dx[3:6] = vector_rotate_quaternion(tmp, x[6:10]) / m
 
     # Quaternion
     dx[6:10] = quaternion_multiply(
@@ -34,7 +37,9 @@ def chaser_dynamics_ct(x, u):
     ) / 2.0
 
     # Omega
-    dx[10:13] = cs.inv(Icm) @ vector_rotate_quaternion(u[3:6], x[6:10]) - cs.inv(Icm) @ cs.cross(x[10:13], Icm @ x[10:13])
+    tmp = cs.SX(3, 1)
+    tmp[2] = u[2]
+    dx[10:13] = cs.inv(Icm) @ vector_rotate_quaternion(tmp, x[6:10]) - cs.inv(Icm) @ cs.cross(x[10:13], Icm @ x[10:13])
 
     return dx
 
@@ -94,10 +99,6 @@ def target_dynamics_dt(x):
     return x_
 
 
-def sigmoid(x):
-    return 2 * (cs.exp(x) / (1 + cs.exp(x)) - 0.5)
-
-
 def stage_cost(xs, ref, offset, us, Qs, Qi):
     cost = 0
 
@@ -105,10 +106,10 @@ def stage_cost(xs, ref, offset, us, Qs, Qi):
         # ======== State cost ========
         # position
         tmp = ref[0:3] + vector_rotate_quaternion(off[0:3], ref[6:10])
-        for i in range(3): cost += Qs[0] * ((x[i] - tmp[i])**2)
+        for i in range(2): cost += Qs[0] * ((x[i] - tmp[i])**2)
 
         # velocity
-        for i in range(3, 6): cost += Qs[1] * ((x[i] - ref[i])**2)
+        # for i in range(3, 6): cost += Qs[1] * ((x[i] - ref[i])**2)
 
         # orientation
         tmp = quaternion_multiply(
@@ -119,13 +120,15 @@ def stage_cost(xs, ref, offset, us, Qs, Qi):
             x[6:10],
             quaternion_inverse(tmp),
         )
-        for i in range(3): cost += Qs[2] * q_err[i]**2
+        cost += Qs[2] * euler_from_quaternion(q_err)[2] ** 2
+        # for i in range(3): cost += Qs[2] * q_err[i]**2
 
         # omega
-        for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
+        # for i in range(10, 13): cost += Qs[3] * ((x[i] - ref[i])**2)
 
         # ======== Input cost ========
-        for i in range(nu): cost += Qi[i // 3] * (u[i]**2)
+        cost += Qi[0] * (u[0]**2 + u[1]**2)
+        cost += Qi[1] * u[2]**2
 
     return cost
 
@@ -139,23 +142,11 @@ def final_cost(x, ref, offset, Qf):
 def crash_constraint(xs, ref):
     res = []
 
-    # for i, x in enumerate(xs):
-    #     res = cs.vertcat(res, cs.fmax(
-    #         0,
-    #         -cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 + (x[2] - ref[2])**2 ) + 0.3,
-    #     ))
-
-    #     for j in range(i, nc):
-    #         res = cs.vertcat(res, cs.fmax(
-    #             0,
-    #             -cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2 + (x[2] - xs[j][2])**2 ) + 0.3,
-    #         ))
-
     for i, x in enumerate(xs):
-        res.append(cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 + (x[2] - ref[2])**2 ))
+        res.append(cs.sqrt( (x[0] - ref[0])**2 + (x[1] - ref[1])**2 ))
 
         for j in range(i+1, nc):
-            res.append(cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2 + (x[2] - xs[j][2])**2 ))
+            res.append(cs.sqrt( (x[0] - xs[j][0])**2 + (x[1] - xs[j][1])**2))
 
     return res
 
@@ -198,8 +189,8 @@ constr = tmp
 print (constr.shape)
 
 # Bound control outputs
-umax = [force, force, force, torque, torque, torque] * mpc_horizon
-umin = [-force, -force, -force, -torque, -torque, -torque] * mpc_horizon
+umax = [force, force, torque] * mpc_horizon
+umin = [-force, -force, -torque] * mpc_horizon
 bounds = og.constraints.Rectangle(umin, umax)
 
 
@@ -214,10 +205,10 @@ problem = og.builder.Problem(u, p, cost)    \
 
 
 meta = og.config.OptimizerMeta()        \
-    .with_version('0.3.2')              \
+    .with_version('0.1.0')              \
     .with_authors(['Frank Fourlas'])    \
     .with_licence('MIT')                \
-    .with_optimizer_name('pose_match_mpc')
+    .with_optimizer_name('slider_mpc')
     
     
 build_config = og.config.BuildConfiguration()       \

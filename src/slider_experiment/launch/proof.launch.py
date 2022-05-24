@@ -8,7 +8,7 @@ import xacro, os, sys
 
 raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/slider/slider.urdf.xacro').toxml()
 raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
-world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
+world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'lab.world')
 nc = 1
 
 nc = None
@@ -52,14 +52,14 @@ def generate_launch_description():
     )
 
     # ================= Chasers =================
+    # Controller
     ld.add_entity(
         Node(
             package = 'control',
-            executable = 'pose_match',
+            executable = 'slider_mpc',
             parameters=[{
                 'nc': nc,
-                'verbose': 2,
-                'prefix': 'slider',
+                'verbose': 2
             }]
         )
     )
@@ -91,8 +91,8 @@ def generate_launch_description():
                     'name': 'slider',
                     'suffix': str(i),
                     'initial_pose': (
-                        '{position: {x: -1.0, y:  0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z: -0.258819, w: 0.9659258}}',
-                        '{position: {x: -1.0, y: -0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z:  0.258819, w: 0.9659258}}'
+                        '{position: {x: -1.0, y:  0.5, z: 0.1185}, orientation: {x: 0.0, y: 0.0, z: -0.258819, w: 0.9659258}}',
+                        '{position: {x: -1.0, y: -0.5, z: 0.1185}, orientation: {x: 0.0, y: 0.0, z:  0.258819, w: 0.9659258}}'
                     )[i]
                 }]
             )
