@@ -1,0 +1,3 @@
+[submodule "gazebo-slider"]
+	path = gazebo-slider
+	url = https://github.com/frank20a/gazebo-slider
