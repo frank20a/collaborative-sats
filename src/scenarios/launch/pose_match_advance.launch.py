@@ -1,8 +1,6 @@
 from click import launch
 from ament_index_python import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import TextSubstitution, LaunchConfiguration
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
@@ -106,7 +104,7 @@ def generate_launch_description():
                 package = 'utils',
                 executable = 'odometry2tf',
                 parameters = [{
-                    'use_sim_time': True
+                    'use_sim_time': False
                 }],
                 namespace = ns
             )

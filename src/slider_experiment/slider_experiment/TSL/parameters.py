@@ -1,7 +1,8 @@
 import numpy as np
 import casadi as cs
 
-force = 0.7         # Maximum thruster force
+from slider_experiment.parameters import force
+
 nt = 8              # Number of thrusters
 ni = 3              # Number of inputs
 A_ = np.array([     # Thruster matrix

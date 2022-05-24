@@ -25,9 +25,16 @@ class ThrustController(Node):
         self.declare_parameter('verbose', 0)
         self.declare_parameter('frequency', 10)
         self.declare_parameter('resolution', 100)
+        self.declare_parameter('force', force)
+        self.declare_parameter('torque', torque)
+
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.frequency = self.get_parameter('frequency').get_parameter_value().integer_value
         self.resolution = self.get_parameter('resolution').get_parameter_value().integer_value
+        self.force = self.get_parameter('force').get_parameter_value().double_value
+        self.torque = self.get_parameter('torque').get_parameter_value().double_value
+
+        self.get_logger().info(f'force = {self.force}, torque = {self.torque}')
         
         self.signals = [create_pwm(0, self.resolution) for i in range(6)]
         self.i = 0
@@ -55,12 +62,12 @@ class ThrustController(Node):
     def send_signals(self):
         req = Wrench()
         
-        req.force.x = force * self.signals[0][self.i]
-        req.force.y = force * self.signals[1][self.i]
-        req.force.z = force * self.signals[2][self.i]
-        req.torque.x = torque * self.signals[3][self.i]
-        req.torque.y = torque * self.signals[4][self.i]
-        req.torque.z = torque * self.signals[5][self.i]
+        req.force.x = self.force * self.signals[0][self.i]
+        req.force.y = self.force * self.signals[1][self.i]
+        req.force.z = self.force * self.signals[2][self.i]
+        req.torque.x = self.torque * self.signals[3][self.i]
+        req.torque.y = self.torque * self.signals[4][self.i]
+        req.torque.z = self.torque * self.signals[5][self.i]
         
         self.i += 1
         self.i %= self.resolution

@@ -15,7 +15,7 @@ from functools import partial
 
 from .flags import *
 from .parameters import force, torque
-from .parameters import solo_tuning as tuning
+from .parameters import dueto_tuning as tuning
 from .pose_match_mpc_generator.parameters import nc, nu
 from .tf_utils import quaternion_multiply, quaternion_inverse
 
@@ -70,7 +70,7 @@ class MPCController2(Node):
             sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/pose_match_mpc'))
             import pose_match_mpc as optimizer
         elif self.prefix == 'slider':
-            sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/slider_mpc'))
+            sys.path.insert(1, os.path.join(get_package_share_directory('slider_experiment'), 'python_build/slider_mpc'))
             import slider_mpc as optimizer
         else:
             raise ValueError('Unknown prefix {}'.format(self.prefix))

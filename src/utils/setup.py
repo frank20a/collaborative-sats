@@ -31,6 +31,7 @@ setup(
             'odometry2tf = ' + package_name + '.odometry2tf:main',
             'tf_debugger = ' + package_name + '.tf_debugger:main',
             'setpoint_publisher = ' + package_name + '.setpoint_publisher:main',
+            '8bit_flag_tester = ' + package_name + '.8bit_flag_tester:main',
         ],
     },
 )

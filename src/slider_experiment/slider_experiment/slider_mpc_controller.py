@@ -5,7 +5,7 @@ from geometry_msgs.msg import Wrench, Pose, Twist
 from std_msgs.msg import Empty
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
-from .tf_utils import get_state, vector_rotate_quaternion
+from .tf_utils import get_state, vector_rotate_quaternion, quaternion_multiply, quaternion_inverse
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -16,7 +16,6 @@ from functools import partial
 from .flags import *
 from .slider_mpc_generator.parameters import force, torque, nc, nu
 from .parameters import slider_tuning as tuning
-from .tf_utils import quaternion_multiply, quaternion_inverse
 
 
 mpc_final_weights = tuning['mpc_final_weights']
@@ -31,7 +30,7 @@ sgn = lambda x: (1 if x > 0 else -1) if floor_(x, 1e-2) != 0 else 0
 
 class MPCController2(Node):
     def __init__(self):
-        super().__init__('mpc_advance')
+        super().__init__('slider_mpc')
         self.declare_parameter('verbose', 0)
         self.declare_parameter('nc', nc)
         self.declare_parameter('freq', 30.0)
@@ -65,7 +64,7 @@ class MPCController2(Node):
             self.offset = np.concatenate((self.offset, np.array([1, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
         
         # Solver
-        sys.path.insert(1, os.path.join(get_package_share_directory('control'), 'python_build/slider_mpc'))
+        sys.path.insert(1, os.path.join(get_package_share_directory('slider_experiment'), 'python_build/slider_mpc'))
         import slider_mpc as optimizer
         self.solver = optimizer.solver()
 

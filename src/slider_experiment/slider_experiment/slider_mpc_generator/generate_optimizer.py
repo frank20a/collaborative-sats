@@ -212,7 +212,7 @@ meta = og.config.OptimizerMeta()        \
     
     
 build_config = og.config.BuildConfiguration()       \
-    .with_build_directory(os.path.join(get_package_share_directory('control'), 'python_build'))           \
+    .with_build_directory(os.path.join(get_package_share_directory('slider_experiment'), 'python_build'))           \
     .with_build_mode('release')                     \
     .with_build_python_bindings()                   \
     .with_rebuild(False)                            \

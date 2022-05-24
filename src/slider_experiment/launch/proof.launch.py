@@ -55,7 +55,7 @@ def generate_launch_description():
     # Controller
     ld.add_entity(
         Node(
-            package = 'control',
+            package = 'slider_experiment',
             executable = 'slider_mpc',
             parameters=[{
                 'nc': nc,
@@ -135,6 +135,10 @@ def generate_launch_description():
             Node(
                 package = 'control',
                 executable = 'thruster_pwm',
+                parameters = [{
+                    'force': 1.2,
+                    'torque': 0.54,
+                }],
                 namespace = ns,
             ),
         )
