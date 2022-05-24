@@ -1,0 +1,11 @@
+ros-galactic-desktop
+ros-galactic-tf-transformations
+ros-galactic-gazebo-ros-pkgs
+ros-galactic-plotjuggler-ros
+ros-galactic-image-pipeline
+ttf-mscorefonts-installer
+texlive-latex-extra
+texlive-science
+texlive-pictures
+texlive-xetex
+texlive-luatex
