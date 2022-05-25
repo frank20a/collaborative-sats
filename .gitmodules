@@ -7,3 +7,6 @@
 [submodule "ORB-SLAM3-ROS2"]
 	path = src/ORB-SLAM3-ROS2
 	url = https://github.com/frank20a/ORB-SLAM3-ROS2
+[submodule "src/ros2-vicon-receiver"]
+	path = src/ros2-vicon-receiver
+	url = https://github.com/frank20a/ros2-vicon-receiver
