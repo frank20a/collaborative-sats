@@ -7,9 +7,6 @@
 [submodule "ORB-SLAM3-ROS2"]
 	path = src/ORB-SLAM3-ROS2
 	url = https://github.com/frank20a/ORB-SLAM3-ROS2
-[submodule "src/ros2_viconstream"]
-	path = src/ros2_viconstream
-	url = https://github.com/frank20a/ros2_viconstream
 [submodule "src/vicon-receiver"]
 	path = src/vicon-receiver
 	url = https://github.com/OPT4SMART/ros2-vicon-receiver
