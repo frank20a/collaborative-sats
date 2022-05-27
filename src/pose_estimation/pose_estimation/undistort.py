@@ -55,7 +55,7 @@ class UndistortedPublisher(Node):
 
         if self.get_parameter('sim').get_parameter_value().bool_value:
             self.get_logger().info("Starting to undistort from sim")
-            mtx, dist, new_mtx, self.roi, h, w = get_camera_calibration('sim_calibration.json')
+            mtx, dist, new_mtx, self.roi, h, w = get_camera_calibration('ip_calibration.json')
             self.create_subscription(
                 Image,
                 (cam + '/image_raw').lstrip('/'),
