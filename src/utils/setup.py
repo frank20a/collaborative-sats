@@ -33,6 +33,7 @@ setup(
             'setpoint_publisher = ' + package_name + '.setpoint_publisher:main',
             '8bit_flag_tester = ' + package_name + '.8bit_flag_tester:main',
             'camera_publisher = ' + package_name + '.camera_publisher:main',
+            'camera_subscriber = ' + package_name + '.camera_subscriber:main',
         ],
     },
 )

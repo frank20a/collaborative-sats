@@ -31,6 +31,7 @@ setup(
             'slider_mpc = ' + package_name + '.slider_mpc_controller:main',
             'thruster_pwm = ' + package_name + '.thruster_pwm:main',
             'tsl = ' + package_name + '.thruster_pwm_tsl:main',
+            'thruster_test = ' + package_name + '.thruster_test:main',
         ],
     },
 )
