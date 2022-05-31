@@ -1,4 +1,6 @@
 # collaborative-sats
+![GitHub](https://img.shields.io/github/license/frank20a/collaborative-sats?style=flat-square)  ![GitHub issues](https://img.shields.io/github/issues/frank20a/collaborative-sats?style=flat-square)  ![GitHub closed issues](https://img.shields.io/github/issues-closed/frank20a/collaborative-sats?style=flat-square)  ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/frank20a/collaborative-sats?style=flat-square)
+
 Part of my thesis. My ROS2 workspace for simulations. I'm using the latest [Galactic](https://docs.ros.org/en/galactic/index.html) version of ROS2.
 
 ## Packages
