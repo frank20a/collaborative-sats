@@ -95,7 +95,7 @@
   </library_effects>
   <library_images>
     <image id="marker-mat-chess-col_png" name="marker-mat-chess-col_png">
-      <init_from>marker-mat-chess-col.png</init_from>
+      <init_from>marker-mat-chess-col-border0.png</init_from>
     </image>
     <image id="solar_texture_jpg" name="solar_texture_jpg">
       <init_from>solar_texture.jpg</init_from>

@@ -26,7 +26,7 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='marker_cube'>
+    <model name='cubesat'>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -63,11 +63,11 @@
           <max_contacts>10</max_contacts>
         </collision>
         <visual name='body_visual_cube_visual'>
-          <pose>0 0 0 0 0 0</pose>
+          <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/frank20a/dev-ws/data/models/simple_targets/ship1/marker_box.dae</uri>
+              <uri>/home/frank20a/dev-ws/data/models/simple_targets/ship2/cubesat.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -175,11 +175,11 @@
       <real_time>126 557485362</real_time>
       <wall_time>1647427712 198493337</wall_time>
       <iterations>124907</iterations>
-      <model name='marker_cube'>
-        <pose>0 0 0.1 0 0 0</pose>
+      <model name='cubesat'>
+        <pose>0 0 1 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='body'>
-          <pose>0 0 0.3 0 0 0</pose>
+          <pose>0 0 1 0 0 -1.571</pose>
           <velocity>0 0 0 0 0 0</velocity>
           <acceleration>0 0 0 0 0 0</acceleration>
           <wrench>0 0 0 0 0 0</wrench>

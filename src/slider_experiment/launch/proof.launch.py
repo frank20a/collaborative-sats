@@ -6,8 +6,8 @@ from launch.actions import IncludeLaunchDescription
 
 import xacro, os, sys
 
-raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/slider/slider.urdf.xacro').toxml()
-raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
+raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/slider/slider.urdf.xacro').toxml()
+raw_target = xacro.process_file('/home/frank20a/dev-ws/data/models/simple_targets/marker_cube.urdf.xacro').toxml()
 world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'lab.world')
 nc = 1
 

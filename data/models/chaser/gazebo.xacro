@@ -56,7 +56,7 @@
         </light>
 
         <sensor type="camera" name="front_cam">
-            <update_rate>60</update_rate>
+            <update_rate>25</update_rate>
             <visualize>true</visualize>
 
             <camera name="cam">

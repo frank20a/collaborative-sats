@@ -13,7 +13,7 @@
         <visual name="body_vis">
             <origin rpy="0 0 ${pi}"/>
             <geometry>
-                <mesh filename="/home/frank20a/dev-ws/models/slider/slider_model_05.dae"/>
+                <mesh filename="/home/frank20a/dev-ws/data/models/slider/slider_model_05.dae"/>
             </geometry>
         </visual>
 

@@ -11,7 +11,7 @@ class CameraPublisher(Node):
         super().__init__('camera_subscriber')
 
         self.bridge = CvBridge()
-        self.create_subscription(Image, 'camera/color/image_raw', self.callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.create_subscription(Image, 'camera/image_raw', self.callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
         
     def callback(self, msg):
         self.get_logger().info("Test")

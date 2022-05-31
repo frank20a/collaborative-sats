@@ -26,9 +26,9 @@ class ModelSpawner(Node):
         name = self.get_parameter('name').get_parameter_value().string_value
         folder = self.get_parameter('folder').get_parameter_value().string_value
         if folder == '':
-            path = os.path.join('/home/frank20a/dev-ws/models', name, name + '.urdf.xacro')
+            path = os.path.join('/home/frank20a/dev-ws/data/models', name, name + '.urdf.xacro')
         else:
-            path = os.path.join('/home/frank20a/dev-ws/models', folder, name + '.urdf.xacro')
+            path = os.path.join('/home/frank20a/dev-ws/data/models', folder, name + '.urdf.xacro')
         self.req.xml = xacro.process_file(path).toxml()
 
         # Set the robot name in Gazebo

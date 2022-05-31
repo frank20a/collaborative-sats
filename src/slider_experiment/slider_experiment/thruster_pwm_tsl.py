@@ -27,7 +27,7 @@ class ThrustController(Node):
         
         self.declare_parameter('verbose', 0)
         self.declare_parameter('frequency', 10)
-        self.declare_parameter('resolution', 100)
+        self.declare_parameter('resolution', 32)
 
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.frequency = self.get_parameter('frequency').get_parameter_value().integer_value

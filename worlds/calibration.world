@@ -112,7 +112,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>/home/frank20a/dev-ws/models/chessboard/chessboard.dae</uri>
+              <uri>/home/frank20a/dev-ws/data/models/chessboard/chessboard.dae</uri>
             </mesh>
           </geometry>
         </visual>

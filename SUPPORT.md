@@ -41,7 +41,7 @@ See relevant documentation [here](/src/stereo_cam/SUPPORT.md).
 
 ## Using custom OGRE materials in models with Gazebo
 
-See relevant documentation [here](/models/SUPPORT.md#using-ogre-materials).
+See relevant documentation [here](/data/models/SUPPORT.md#using-ogre-materials).
 
 ## Robot Description
 

@@ -8,9 +8,9 @@ import os, sys, xacro
 # from control.control.pose_match_mpc_controller import nc as nc_
 
 
-raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
-raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
-world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
+raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
+raw_target = xacro.process_file('/home/frank20a/dev-ws/data/models/simple_targets/cubesat.urdf.xacro').toxml()
+world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space_realistic.world')
 
 nc = None
 for arg in sys.argv:
@@ -170,20 +170,20 @@ def generate_launch_description():
     )
 
     # ================== ORB_SLAM ==================
-    ld.add_entity(
-        Node(
-            package = 'orbslam',
-            executable = 'mono',
-            arguments = [
-                './ORB_SLAM3/Vocabulary/ORBvoc.txt',
-                './data/calibration_files/sim_calibration.yaml',
-            ],
-            remappings=[
-                ('camera', 'front_cam/image_raw'),
-            ],
-            namespace='chaser_0',
-        )
-    )
+    # ld.add_entity(
+    #     Node(
+    #         package = 'orbslam',
+    #         executable = 'mono',
+    #         arguments = [
+    #             './ORB_SLAM3/Vocabulary/ORBvoc.txt',
+    #             './data/calibration_files/sim_calibration.yaml',
+    #         ],
+    #         remappings=[
+    #             ('camera/image_raw', 'front_cam/image_raw'),
+    #         ],
+    #         namespace='chaser_0',
+    #     )
+    # )
 
     
     

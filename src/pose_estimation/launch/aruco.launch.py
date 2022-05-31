@@ -7,8 +7,8 @@ import xacro, os
 
 def generate_launch_description():
 
-    raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
-    raw_target = xacro.process_file('/home/frank20a/dev-ws/models/simple_targets/marker_cube.urdf.xacro').toxml()
+    raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
+    raw_target = xacro.process_file('/home/frank20a/dev-ws/data/models/simple_targets/marker_cube.urdf.xacro').toxml()
     world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space.world')
     ld = LaunchDescription()
 

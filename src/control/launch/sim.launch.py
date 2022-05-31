@@ -6,7 +6,7 @@ from launch.actions import IncludeLaunchDescription, ExecuteProcess
 import xacro, os
 
 
-raw_chaser = xacro.process_file('/home/frank20a/dev-ws/models/chaser/chaser.urdf.xacro').toxml()
+raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
 world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'pid_test.world')
 
 

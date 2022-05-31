@@ -3,9 +3,9 @@
 ## Using OGRE materials
 
 Add the following line to your `~/.bashrc` file
-`export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:~/dev-ws/models:${GAZEBO_RESOURCE_PATH}`
+`export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:~/dev-ws/data/models:${GAZEBO_RESOURCE_PATH}`
 
-Create a `/media` folder inside `/models` with the following structure
+Create a `/media` folder inside `/data/models` with the following structure
 ```
 /media
     /scripts

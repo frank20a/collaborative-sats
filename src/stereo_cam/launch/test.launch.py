@@ -5,7 +5,7 @@ import xacro, os
 
 def generate_launch_description():
 
-    raw_robot = xacro.process_file('/home/frank20a/dev-ws/models/test/test.urdf.xacro').toxml()
+    raw_robot = xacro.process_file('/home/frank20a/dev-ws/data/models/test/test.urdf.xacro').toxml()
 
     return LaunchDescription([
         Node(
