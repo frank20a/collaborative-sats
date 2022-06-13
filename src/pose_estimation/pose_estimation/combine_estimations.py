@@ -2,6 +2,7 @@ import rclpy
 from rclpy.time import Time
 from rclpy.node import Node
 from geometry_msgs.msg import TransformStamped, Pose, Twist
+from nav_msgs.msg import Odometry
 from std_msgs.msg import Empty
 from tf2_ros import TransformBroadcaster, TransformException
 from tf2_ros import LookupException, ConnectivityException, ExtrapolationException
@@ -43,8 +44,9 @@ class CombineEstimations(Node):
         self.listener = TransformListener(self.buffer, self)
 
         if self.topics:
-            self.p_pub = self.create_publisher(Pose, 'estimated_pose', QoSPresetProfiles.get_from_short_key('sensor_data'))
-            self.t_pub = self.create_publisher(Twist, 'estimated_twist', QoSPresetProfiles.get_from_short_key('sensor_data'))
+            # self.p_pub = self.create_publisher(Pose, 'estimated_pose', QoSPresetProfiles.get_from_short_key('sensor_data'))
+            # self.t_pub = self.create_publisher(Twist, 'estimated_twist', QoSPresetProfiles.get_from_short_key('sensor_data'))
+            self.pub = self.create_publisher(Odometry, 'estimated_odom', QoSPresetProfiles.get_from_short_key('sensor_data'))
             self.create_subscription(Empty, 'toggle_avg_twist', self.avg_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
 
             self.prev_vels = None
@@ -118,6 +120,8 @@ class CombineEstimations(Node):
             self.publish_state(combined_transform)
 
     def publish_state(self, combined_transform):
+        msg = Odometry()
+
         p = Pose()
         p.position.x = combined_transform.transform.translation.x
         p.position.y = combined_transform.transform.translation.y
@@ -126,7 +130,8 @@ class CombineEstimations(Node):
         p.orientation.y = combined_transform.transform.rotation.y
         p.orientation.z = combined_transform.transform.rotation.z
         p.orientation.w = combined_transform.transform.rotation.w
-        self.p_pub.publish(p)
+        # self.p_pub.publish(p)
+        msg.pose.pose = p
 
         t = Twist()
         eul = np.array(euler_from_quaternion([
@@ -188,7 +193,10 @@ class CombineEstimations(Node):
         t.angular.y = floor_(np.average(self.prev_vels[-ra_len:, 4]))
         t.angular.z = floor_(np.average(self.prev_vels[-ra_len:, 5]))
 
-        self.t_pub.publish(t)
+        # self.t_pub.publish(t)
+        msg.twist.twist = t
+
+        self.pub.publish(msg)
 
 
 def main(args=None):

@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Pose, TransformStamped, Twist
+from geometry_msgs.msg import Pose, TransformStamped, Twist, Vector3
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Empty
 from rclpy.qos import QoSPresetProfiles
@@ -17,7 +17,16 @@ class ViconFilter(Node):
     def __init__(self):
         super().__init__('vicon_filter')
 
-        self.pose_br = TransformBroadcaster(self)
+        self.declare_parameter('master', False)
+        self.declare_parameter('export_tf', True)
+        self.declare_parameter('frame_id', 'slider_0/body')
+
+        self.master = self.get_parameter('master').get_parameter_value().bool_value
+        self.export_tf = self.get_parameter('export_tf').get_parameter_value().bool_value
+        self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
+
+        if self.export_tf:
+            self.pose_br = TransformBroadcaster(self)
 
         self.offset = None
         self.offset_flag = False
@@ -28,10 +37,14 @@ class ViconFilter(Node):
         
         self.create_subscription(Pose, 'input', self.callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
         # self.create_timer(1/50, self.dummy)
-        self.create_subscription(Empty, 'set_offset', self.set_offset, QoSPresetProfiles.get_from_short_key('system_default'))
+        if self.master:
+            self.create_subscription(Empty, 'set_offset', self.set_offset_empty, QoSPresetProfiles.get_from_short_key('system_default'))
+            self.offset_pub = self.create_publisher(Vector3, 'vicon/offset', QoSPresetProfiles.get_from_short_key('system_default'))
+        else:
+            self.create_subscription(Vector3, 'vicon/offset', self.set_offset, QoSPresetProfiles.get_from_short_key('system_default'))
         self.create_subscription(Empty, 'enable_vicon', self.set_go, QoSPresetProfiles.get_from_short_key('system_default'))
 
-        self.pub = self.create_publisher(Odometry, 'slider_0/odom', QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.pub = self.create_publisher(Odometry, 'output', QoSPresetProfiles.get_from_short_key('sensor_data'))
         
     def callback(self, msg: Pose):
         if not self.offset_flag:
@@ -39,18 +52,19 @@ class ViconFilter(Node):
             return
         
         if self.go:
-            tmp = TransformStamped()
-            tmp.header.frame_id = 'world'
-            tmp.header.stamp = self.get_clock().now().to_msg()
-            tmp.child_frame_id = 'slider_0/body'
-            tmp.transform.translation.x = msg.position.x - self.offset[0]
-            tmp.transform.translation.y = msg.position.y - self.offset[1]
-            tmp.transform.translation.z = msg.position.z - self.offset[2]
-            tmp.transform.rotation.x = msg.orientation.x 
-            tmp.transform.rotation.y = msg.orientation.y
-            tmp.transform.rotation.z = msg.orientation.z
-            tmp.transform.rotation.w = msg.orientation.w
-            self.pose_br.sendTransform(tmp)
+            if self.export_tf:
+                tmp = TransformStamped()
+                tmp.header.frame_id = 'world'
+                tmp.header.stamp = self.get_clock().now().to_msg()
+                tmp.child_frame_id = self.frame_id
+                tmp.transform.translation.x = msg.position.x - self.offset[0]
+                tmp.transform.translation.y = msg.position.y - self.offset[1]
+                tmp.transform.translation.z = msg.position.z - self.offset[2]
+                tmp.transform.rotation.x = msg.orientation.x 
+                tmp.transform.rotation.y = msg.orientation.y
+                tmp.transform.rotation.z = msg.orientation.z
+                tmp.transform.rotation.w = msg.orientation.w
+                self.pose_br.sendTransform(tmp)
 
             tmp = Pose()
             tmp.position.x = msg.position.x - self.offset[0]
@@ -122,7 +136,22 @@ class ViconFilter(Node):
             res.twist.twist = tmp1
             self.pub.publish(res)
 
-    def set_offset(self, _):
+    def set_offset_empty(self, _):
+        if self.offset is None:
+            self.get_logger().error("Offset not initialized yet!")
+            return
+
+        msg = Vector3()
+        msg.x = self.offset[0]
+        msg.y = self.offset[1]
+        msg.z = self.offset[2]
+        self.offset_pub.publish(msg)
+
+        self.get_logger().info("Offset set to {}".format(self.offset))
+        self.offset_flag = True
+
+    def set_offset(self, msg: Vector3):
+        self.offset = [msg.x, msg.y, msg.z]
         self.get_logger().info("Offset set to {}".format(self.offset))
         self.offset_flag = True
 

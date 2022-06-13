@@ -105,20 +105,27 @@ def generate_launch_description():
         )
 
         # ================== ORB_SLAM ==================
-        # ld.add_entity(
-        #     Node(
-        #         package = 'orbslam',
-        #         executable = 'mono',
-        #         arguments = [
-        #             './ORB_SLAM3/Vocabulary/ORBvoc.txt',
-        #             './data/calibration_files/sim_calibration.yaml',
-        #         ],
-        #         remappings=[
-        #             ('camera/image_raw', 'front_cam/image_raw'),
-        #         ],
-        #         namespace='chaser_0',
-        #     )
-        # )
+        ld.add_entity(
+            Node(
+                package = 'orbslam',
+                executable = 'mono',
+                arguments = [
+                    './ORB_SLAM3/Vocabulary/ORBvoc.txt',
+                    './data/calibration_files/sim_calibration.yaml',
+                ],
+                # remappings=[
+                #     ('camera/image_raw', 'front_cam/image_raw'),
+                # ],
+                namespace='chaser_0',
+            )
+        )
+        ld.add_entity(
+            Node(
+                package = 'scenarios',
+                executable = 'orbslam_filter',
+                namespace='chaser_0',
+            )
+        )
 
         # Controller
         ld.add_entity(

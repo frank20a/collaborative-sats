@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
             'lock_target = ' + package_name + '.lock_target:main',
             'pose_match = ' + package_name + '.pose_match:main',
+            'orbslam_filter = ' + package_name + '.orbslam_filter:main',
         ],
     },
 )

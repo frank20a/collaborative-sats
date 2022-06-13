@@ -6,8 +6,6 @@ from std_msgs.msg import Empty
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
 from .tf_utils import get_state, vector_rotate_quaternion
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
 
 import numpy as np
 import os, sys
@@ -97,8 +95,9 @@ class MPCController2(Node):
                 QoSPresetProfiles.get_from_short_key('system_default')
             )
         self.create_subscription(Empty, 'toggle_control', self.control_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
-        self.create_subscription(Pose, 'target/estimated_pose', self.set_target_pose, QoSPresetProfiles.get_from_short_key('sensor_data'))
-        self.create_subscription(Twist, 'target/estimated_twist', self.set_target_twist, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        # self.create_subscription(Pose, 'target/estimated_pose', self.set_target_pose, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        # self.create_subscription(Twist, 'target/estimated_twist', self.set_target_twist, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.create_subscription(Odometry, 'target/estimated_odom', self.set_target_state, QoSPresetProfiles.get_from_short_key('sensor_data'))
 
         # Publishers
         self.pubs = [self.create_publisher(
@@ -108,11 +107,6 @@ class MPCController2(Node):
         ) for i in range(self.nc)]
         if self.verbose > 1:
             self.d_rp = [self.create_publisher(Pose, '/debug/relative_pose_{}'.format(i), QoSPresetProfiles.get_from_short_key('sensor_data')) for i in range(self.nc)]
-
-
-        # Transform listener
-        self.buffer = Buffer()
-        TransformListener(self.buffer, self)
 
         # Callback to run controller
         self.create_timer(self.dt / 15, self.callback)
@@ -141,11 +135,17 @@ class MPCController2(Node):
         if self.chaser_states[chaser_num] is None:
             self.chaser_states[chaser_num] = get_state(msg)
 
+    # DEPRECATED
     def set_target_pose(self, msg: Pose):
         self.target_pose = msg
 
+    # DEPRECATED
     def set_target_twist(self, msg: Twist):
         self.target_twist = msg
+
+    def set_target_state(self, msg: Odometry):
+        self.target_pose = msg.pose.pose
+        self.target_twist = msg.twist.twist
 
     def callback(self):
         if self.target_pose is None or self.target_twist is None or any(map(lambda x: x is None, self.chaser_states)) or not self.cmd_flag: return
