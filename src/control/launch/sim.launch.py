@@ -7,7 +7,7 @@ import xacro, os
 
 
 raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
-world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'pid_test.world')
+world = os.path.join('/home/frank20a/dev-ws/data', 'worlds', 'pid_test.world')
 
 
 def generate_launch_description():

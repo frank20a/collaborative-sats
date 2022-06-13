@@ -1,0 +1,4 @@
+rosrun rosserial_arduino serial_node.py
+ros2 topic pub --once /set_offset std_msgs/msg/Empty
+ros2 topic pub --once /enable_vicon std_msgs/msg/Empty
+ros2 topic pub --once /toggle_control std_msgs/msg/Empty

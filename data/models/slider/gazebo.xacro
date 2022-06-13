@@ -51,7 +51,7 @@
             </spot>
         </light>
 
-        <sensor type="camera" name="front_cam">
+        <sensor type="camera" name="camera">
             <update_rate>60</update_rate>
             <visualize>true</visualize>
 

@@ -33,7 +33,7 @@ class KeyTeleop(Node):
                 self.flag |= NEG_Y
             elif key == keyboard.Key.space:
                 self.flag |= POS_Z
-            elif key == keyboard.Key.shift:
+            elif key == keyboard.Key.ctrl_l:
                 self.flag |= NEG_Z
             elif key.char == 'r':
                 self.flag |= NEG_YAW
@@ -60,7 +60,7 @@ class KeyTeleop(Node):
                 self.flag &= ~NEG_Y
             elif key == keyboard.Key.space:
                 self.flag &= ~POS_Z
-            elif key == keyboard.Key.shift:
+            elif key == keyboard.Key.ctrl_l:
                 self.flag &= ~NEG_Z
             elif key.char == 'r':
                 self.flag &= ~NEG_YAW

@@ -29,9 +29,12 @@ setup(
     entry_points={
         'console_scripts': [
             'slider_mpc = ' + package_name + '.slider_mpc_controller:main',
+            'dummy_controller = ' + package_name + '.dummy_controller:main',
             'thruster_pwm = ' + package_name + '.thruster_pwm:main',
             'tsl = ' + package_name + '.thruster_pwm_tsl:main',
             'thruster_test = ' + package_name + '.thruster_test:main',
+            'vicon_filter = ' + package_name + '.vicon_filter:main',
+            'circle = ' + package_name + '.circle:main',
         ],
     },
 )

@@ -9,7 +9,7 @@ def generate_launch_description():
 
     raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
 
-    world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'calibration.world')
+    world = os.path.join('/home/frank20a/dev-ws/data', 'worlds', 'calibration.world')
     
 
     return LaunchDescription([ 

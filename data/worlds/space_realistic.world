@@ -26,7 +26,7 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='cubesat'>
+    <model name='cassini'>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -44,9 +44,10 @@
         <collision name='body_collision_collision'>
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
-            <box>
-              <size>0.1 0.1 0.2</size>
-            </box>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.55</length>
+            </cylinder>
           </geometry>
           <surface>
             <contact>
@@ -63,13 +64,23 @@
           <max_contacts>10</max_contacts>
         </collision>
         <visual name='body_visual_cube_visual'>
-          <pose>0 0 0 0 -0 0</pose>
+          <pose>0 0 0 0 0 0</pose>
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/frank20a/dev-ws/data/models/simple_targets/ship2/cubesat.dae</uri>
+              <uri>/home/frank20a/dev-ws/data/models/cassini/meshes/cassini.dae</uri>
             </mesh>
           </geometry>
+          <material>
+              <script>
+                  <uri>/home/frank20a/dev-ws/data/models/cassini/materials/scripts/</uri>
+                  <uri>/home/frank20a/dev-ws/data/models/cassini/materials/textures/</uri>
+                  <name>CassiniMat</name>
+              </script>
+              <shader type='normal_map_tangent_space'>
+                  <normal_map>/home/frank20a/dev-ws/models/cassini/materials/textures/cassini_normal.png</normal_map>
+              </shader>
+          </material>
         </visual>
         <gravity>0</gravity>
         <self_collide>0</self_collide>
@@ -171,11 +182,7 @@
       </spot>
     </light>
     <state world_name='default'>
-      <sim_time>552 177000000</sim_time>
-      <real_time>126 557485362</real_time>
-      <wall_time>1647427712 198493337</wall_time>
-      <iterations>124907</iterations>
-      <model name='cubesat'>
+      <model name='cassini'>
         <pose>0 0 1 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='body'>

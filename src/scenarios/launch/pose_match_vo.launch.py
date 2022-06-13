@@ -10,15 +10,9 @@ import os, sys, xacro
 
 raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
 raw_target = xacro.process_file('/home/frank20a/dev-ws/data/models/simple_targets/cubesat.urdf.xacro').toxml()
-world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'space_realistic.world')
+world = os.path.join('/home/frank20a/dev-ws/data', 'worlds', 'space_realistic.world')
 
-nc = None
-for arg in sys.argv:
-    if arg.startswith("nc"):
-        nc = int(arg.split(":=")[1])
-
-if nc is None:
-    nc = 1
+nc = 1
 
 
 def generate_launch_description():
@@ -53,16 +47,16 @@ def generate_launch_description():
     )
 
     # ================= Chasers =================
-    ld.add_entity(
-        Node(
-            package = 'control',
-            executable = 'pose_match',
-            parameters=[{
-                'nc': nc,
-                'verbose': 2,
-            }]
-        )
-    )
+    # ld.add_entity(
+    #     Node(
+    #         package = 'control',
+    #         executable = 'pose_match',
+    #         parameters=[{
+    #             'nc': nc,
+    #             'verbose': 2,
+    #         }]
+    #     )
+    # )
 
     for i in range(nc):
         ns = 'chaser_' + str(i)
@@ -91,7 +85,7 @@ def generate_launch_description():
                     'name': 'chaser',
                     'suffix': str(i),
                     'initial_pose': (
-                        '{position: {x: -1.0, y:  0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z: -0.258819, w: 0.9659258}}',
+                        '{position: {x: -2.0, y:  0.0, z: 1.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 0.0}}',
                         '{position: {x: -1.0, y: -0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z:  0.258819, w: 0.9659258}}'
                     )[i]
                 }]
@@ -109,32 +103,35 @@ def generate_launch_description():
                 namespace = ns
             )
         )
-        
-        # Open ArUco estimator
-        ld.add_entity(
-        Node(
-            package = 'pose_estimation',
-            executable = 'aruco_board_estimator',
-            parameters = [{
-                # 'verbose': 1,
-                'use_sim_time': True,
-                'sim': True,
-                'filter': 'const_accel',
-                'duration': False,
-                'ra_len': 5,
-            }],
-            remappings=[
-                ('input_img', 'front_cam/image_raw'),
-            ],
-            namespace = ns
-        )
-    )
+
+        # ================== ORB_SLAM ==================
+        # ld.add_entity(
+        #     Node(
+        #         package = 'orbslam',
+        #         executable = 'mono',
+        #         arguments = [
+        #             './ORB_SLAM3/Vocabulary/ORBvoc.txt',
+        #             './data/calibration_files/sim_calibration.yaml',
+        #         ],
+        #         remappings=[
+        #             ('camera/image_raw', 'front_cam/image_raw'),
+        #         ],
+        #         namespace='chaser_0',
+        #     )
+        # )
 
         # Controller
         ld.add_entity(
             Node(
                 package = 'control',
-                executable = 'thruster_pwm',
+                executable = 'thruster',
+                namespace = 'chaser_' + str(i),
+            ),
+        )
+        ld.add_entity(
+            Node(
+                package = 'control',
+                executable = 'key_teleop',
                 namespace = 'chaser_' + str(i),
             ),
         )
@@ -164,28 +161,10 @@ def generate_launch_description():
                 'use_sim_time': True
             }],
             arguments = [
-                '-d', os.path.join(get_package_share_directory('scenarios'), 'rviz_config/scenarios2.rviz'),
+                '-d', os.path.join(get_package_share_directory('scenarios'), 'rviz_config/vo.rviz'),
             ],
         )
-    )
-
-    # ================== ORB_SLAM ==================
-    # ld.add_entity(
-    #     Node(
-    #         package = 'orbslam',
-    #         executable = 'mono',
-    #         arguments = [
-    #             './ORB_SLAM3/Vocabulary/ORBvoc.txt',
-    #             './data/calibration_files/sim_calibration.yaml',
-    #         ],
-    #         remappings=[
-    #             ('camera/image_raw', 'front_cam/image_raw'),
-    #         ],
-    #         namespace='chaser_0',
-    #     )
-    # )
-
-    
+    )    
     
     return ld
 

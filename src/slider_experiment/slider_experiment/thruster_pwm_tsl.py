@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Vector3
-from std_msgs.msg import Int16
+from std_msgs.msg import Int16, Int8MultiArray, MultiArrayDimension
 from rclpy.qos import QoSPresetProfiles
 from ament_index_python import get_package_share_directory
 
@@ -41,7 +41,8 @@ class ThrustController(Node):
         self.i = 0
         
         self.create_subscription(Vector3, 'thrust_cmd', self.callback, QoSPresetProfiles.get_from_short_key('system_default'))
-        self.pub = self.create_publisher(Int16, 'thruster_flags', QoSPresetProfiles.get_from_short_key('sensor_data'))
+        # self.pub = self.create_publisher(Int16, 'thruster_flags', QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.pub = self.create_publisher(Int8MultiArray, '/thrusters', QoSPresetProfiles.get_from_short_key('sensor_data'))
 
         self.create_timer(1/(self.frequency * self.resolution), self.send_signals)
         
@@ -56,20 +57,28 @@ class ThrustController(Node):
         self.signals = [create_pwm(T[i] / force, self.resolution) for i in range(8)]
         
     def send_signals(self):
-        req = Int16()
-        
-        tmp = 0
-        for i in range(8):
-            if self.signals[i][self.i] == 1:
-                tmp ^= flags[i]
-        try:
-            req.data = tmp
-        except AssertionError:
-            print(tmp)
+        # req = Int16()
+        req = Int8MultiArray()
+        req.data = [int(self.signals[i][self.i]) for i in range(8)]
+        # req.layout.dim = [MultiArrayDimension()]
+        # req.layout.dim[0].size = 8
+        # req.layout.dim[0].stride = 8
+        # req.layout.dim[0].label = 'thruster'
+        # req.layout.data_offset = 0
 
+        # tmp = []
+        # for i in range(8):
+            # if self.signals[i][self.i] == 1:
+                # tmp ^= flags[i]
+        # try:
+        #     req.data = tmp
+        # except Exception:
+        #     self.get_logger().info('AssertionError {}'.format(tmp))
+        #     return
         
         self.i += 1
         self.i %= self.resolution
+        # self.get_logger().info('{}'.format(req))
         
         self.pub.publish(req)
         

@@ -10,7 +10,7 @@ import numpy as np
 import json, glob, os
 
 
-def calibrateCameraLive(num_images: int = 15, cb: tuple = (8, 5), camera_name = 'ip'):
+def calibrateCameraLive(num_images: int = 15, cb: tuple = (8, 5), camera_name = 'ip', camera_id = 0):
     # termination criteria
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -22,7 +22,7 @@ def calibrateCameraLive(num_images: int = 15, cb: tuple = (8, 5), camera_name = 
     objpoints = [] # 3d point in real world space
     imgpoints = [] # 2d points in image plane.
 
-    cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(camera_id)
     flag = True
     while num_images > 0:
         ret, img = cap.read()
@@ -119,13 +119,6 @@ def calibrateCameraFiles(cb: tuple = (8, 5), folder = os.getcwd()):
     return mtx, dist, rvecs, tvecs, new_mtx, roi
 
 
-def get_camera_calibration():
-    with open(os.path.join(get_package_share_directory('pose_estimation'), 'calibration.json'), 'r') as f:
-        cal = json.load(f)
-
-    return np.asarray(cal['mtx']), np.asarray(cal['dist']), np.asarray(cal['new_mtx']), np.asarray(cal['roi']), cal['h'], cal['w']
-
-
 class Calibrator(Node):
     def __init__(self):
         super().__init__("camera_calibrator")
@@ -135,20 +128,11 @@ class Calibrator(Node):
         self.declare_parameter('type', 'live')
         self.declare_parameter('folder', '/home/frank20a/calibration_imgs')
         self.declare_parameter('camera_name', 'ip')
+        self.declare_parameter('camera_id', 0)
+        
+        self.camera_id = self.get_parameter('camera_id').get_parameter_value().integer_value
 
-
-        if self.get_parameter('type').get_parameter_value().string_value == 'live':
-            calibrateCameraLive(
-                self.get_parameter('num_images').get_parameter_value().integer_value,
-                (
-                    self.get_parameter('chessboard_h').get_parameter_value().integer_value,
-                    self.get_parameter('chessboard_w').get_parameter_value().integer_value,
-                ),
-                self.get_parameter('camera_name').get_parameter_value().string_value
-            )
-            self.destroy_node()
-
-        elif self.get_parameter('type').get_parameter_value().string_value == 'file':
+        if self.get_parameter('type').get_parameter_value().string_value == 'file':
             calibrateCameraFiles(
                 (
                     self.get_parameter('chessboard_h').get_parameter_value().integer_value,
@@ -158,7 +142,7 @@ class Calibrator(Node):
             )
             self.destroy_node()
 
-        if self.get_parameter('type').get_parameter_value().string_value == 'topic':
+        elif self.get_parameter('type').get_parameter_value().string_value == 'topic':
 
             self.bridge = CvBridge()
 
@@ -184,7 +168,16 @@ class Calibrator(Node):
             self.create_subscription(Image, 'camera/image_raw', self.callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
 
         else:
-            print('Invalid parameter "type"')
+            calibrateCameraLive(
+                self.get_parameter('num_images').get_parameter_value().integer_value,
+                (
+                    self.get_parameter('chessboard_h').get_parameter_value().integer_value,
+                    self.get_parameter('chessboard_w').get_parameter_value().integer_value,
+                ),
+                self.get_parameter('camera_name').get_parameter_value().string_value,
+                self.camera_id,
+            )
+            self.destroy_node()
 
         
     def callback(self, msg):

@@ -2,13 +2,13 @@ force = 0.7         # Maximum thruster force
 
 slider_tuning = {
     'mpc_state_weights': [
-        70,    # position
+        80,    # position
         0,      # velocity
         7,    # orientation
         0       # omega
     ],
     'mpc_input_weights': [   
-        50,      # force
+        25,      # force
         150      # torque
     ],
 }

@@ -9,7 +9,7 @@ def generate_launch_description():
 
     raw_robot = xacro.process_file('/home/frank20a/dev-ws/data/models/stereo_cam/stereo_cam.urdf.xacro').toxml()
 
-    world = os.path.join('/home/frank20a/dev-ws', 'worlds', 'test1.world')
+    world = os.path.join('/home/frank20a/dev-ws/data', 'worlds', 'test1.world')
 
     
     return LaunchDescription([

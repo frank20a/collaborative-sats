@@ -29,25 +29,7 @@ def generate_launch_description():
     ld.add_entity(
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-            launch_arguments={'world': world}.items()
-        )
-    )
-
-    # Publish target to robot_state_publisher
-    ld.add_entity(
-        Node(
-            package = 'robot_state_publisher',
-            executable =  'robot_state_publisher',
-            name = 'target_state_publisher',
-            output = 'screen',
-            parameters = [{
-                'robot_description': raw_target,
-                'use_sim_time': True,
-            }],
-            remappings=[
-                ('robot_description', 'target_desc'),
-            ],
-            namespace = 'target',
+            # launch_arguments={'world': world}.items()
         )
     )
 
@@ -56,7 +38,7 @@ def generate_launch_description():
     ld.add_entity(
         Node(
             package = 'slider_experiment',
-            executable = 'slider_mpc',
+            executable = 'dummy_controller',
             parameters=[{
                 'nc': nc,
                 'verbose': 2
@@ -124,7 +106,7 @@ def generate_launch_description():
                     'ra_len': 5,
                 }],
                 remappings=[
-                    ('input_img', 'camera/image_raw'),
+                    ('input_img', 'front_cam/image_raw'),
                 ],
                 namespace = ns
             )

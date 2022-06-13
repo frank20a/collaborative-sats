@@ -26,11 +26,13 @@ class ArucoBoardPoseEstimator(Node):
         # Declare parameters
         self.declare_parameter('verbose', 1)
         self.declare_parameter('sim', False)
+        self.declare_parameter('cam_name', '')
         self.declare_parameter('model', 'marker_cube_1')
         self.declare_parameter('duration', False)
         self.declare_parameter('filter', '')
         self.declare_parameter('ra_len', 6)
         
+        self.cam_name = self.get_parameter('cam_name').get_parameter_value().string_value
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
         self.filter = self.get_parameter('filter').get_parameter_value().string_value
@@ -51,10 +53,13 @@ class ArucoBoardPoseEstimator(Node):
         )
 
         # Get calibration parameters
-        if self.get_parameter('sim').get_parameter_value().bool_value:
-            self.mtx, self.dist, _, _, _, _ = get_camera_calibration('sim_calibration.json')
+        if self.cam_name != '':
+            self.mtx, self.dist, _, _, _, _ = get_camera_calibration(self.cam_name + '_calibration.json')
         else:
-            self.mtx, self.dist, _, _, _, _ = get_camera_calibration()
+            if self.get_parameter('sim').get_parameter_value().bool_value:
+                self.mtx, self.dist, _, _, _, _ = get_camera_calibration('sim_calibration.json')
+            else:
+                self.mtx, self.dist, _, _, _, _ = get_camera_calibration()
 
         self.create_subscription(
             Image,

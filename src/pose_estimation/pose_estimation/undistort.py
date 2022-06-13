@@ -13,7 +13,9 @@ from time import time
 
 
 def get_camera_calibration(filename = 'calibration.json'):
-    with open(os.path.join(get_package_share_directory('pose_estimation'), filename), 'r') as f:
+    # with open(os.path.join(get_package_share_directory('pose_estimation'), filename), 'r') as f:
+    #     cal = json.load(f)
+    with open(os.path.join('/home/frank20a/dev-ws/data/calibration_files', filename), 'r') as f:
         cal = json.load(f)
 
     return np.asarray(cal['mtx']), np.asarray(cal['dist']), np.asarray(cal['new_mtx']), np.asarray(cal['roi']), cal['h'], cal['w']
@@ -31,6 +33,7 @@ def undistort_crop(img, mapx, mapy, roi):
     dst = cv.remap(img, mapx, mapy, cv.INTER_LINEAR)
     x, y, w, h = roi
     return dst[y:y+h, x:x+w]
+    # return dst
 
 
 class UndistortedPublisher(Node):
@@ -40,12 +43,14 @@ class UndistortedPublisher(Node):
         self.bridge = CvBridge()
         self.declare_parameter('verbose', 0)
         self.declare_parameter('sim', False)
+        self.declare_parameter('cam_name', 'laptop')
         self.declare_parameter('camera', '/front_cam')
         self.declare_parameter('duration', False)
 
         cam = ('/' + self.get_parameter('camera').get_parameter_value().string_value).replace('//', '/')
         self.fps_flag = self.get_parameter('duration').get_parameter_value().bool_value
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
+        self.cam_name = self.get_parameter('cam_name').get_parameter_value().string_value
 
         self.publisher_disp = self.create_publisher(
             Image, 
@@ -55,7 +60,8 @@ class UndistortedPublisher(Node):
 
         if self.get_parameter('sim').get_parameter_value().bool_value:
             self.get_logger().info("Starting to undistort from sim")
-            mtx, dist, new_mtx, self.roi, h, w = get_camera_calibration('ip_calibration.json')
+            mtx, dist, new_mtx, self.roi, h, w = get_camera_calibration(self.cam_name + '_calibration.json')
+            self.get_logger().info("Calib: \n{} \n{} \n{} \n{} \n{} \n{}".format(mtx, dist, new_mtx, self.roi, h, w))
             self.create_subscription(
                 Image,
                 (cam + '/image_raw').lstrip('/'),
@@ -64,12 +70,12 @@ class UndistortedPublisher(Node):
             )
         else:
             self.get_logger().info("Starting to undistort from computer camera")
-            mtx, dist, new_mtx, self.roi, h, w = get_camera_calibration()
+            mtx, dist, new_mtx, self.roi, h, w = get_camera_calibration(self.cam_name + '_calibration.json')
             self.cap = cv.VideoCapture(0)
             
             self.create_timer(1/60, self.normal_callback)
             
-        self.mapx, self.mapy = cv.initUndistortRectifyMap(mtx, dist, None, new_mtx, (h, w), cv.CV_32FC1)
+        self.mapx, self.mapy = cv.initUndistortRectifyMap(mtx, dist, None, new_mtx, (w, h), cv.CV_32FC1)
 
     def normal_callback(self):
         # self.get_logger().info("Normal Callback")
@@ -81,8 +87,9 @@ class UndistortedPublisher(Node):
             
         # self.get_logger().info("Simulation Callback")
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        self.undistort(cv.cvtColor(img, cv.COLOR_RGB2BGR), msg.header.stamp)
-        
+        # self.undistort(cv.cvtColor(img, cv.COLOR_RGB2BGR), msg.header.stamp)
+        self.undistort(img, msg.header.stamp)
+
         if self.fps_flag:
             self.get_logger().info('Undistort duration: %.3f ms' % ((time() - t) * 1e3))
 
