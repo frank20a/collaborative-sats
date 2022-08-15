@@ -9,11 +9,9 @@ import numpy as np
 import sys, os
 
 from .parameters import force
-from .flags import flags
-
 
 def create_pwm(value, resolution):
-    if value < 0.0: 
+    if value < 0.0:
         value = -value
     if value > 1.0:
         value = 1.0
@@ -55,11 +53,14 @@ class ThrustController(Node):
             self.get_logger().info(f'cmd: {T}')
 
         self.signals = [create_pwm(T[i] / force, self.resolution) for i in range(8)]
+        for n, s in enumerate(self.signals):
+            if s[0] == 1 and s[1] == 0:
+                self.signals[n][1] = 1
         
     def send_signals(self):
         # req = Int16()
         req = Int8MultiArray()
-        req.data = [int(self.signals[i][self.i]) for i in range(8)]
+        req.data = [int(self.signals[i][self.i]) for i in range(0, 8)]
         # req.layout.dim = [MultiArrayDimension()]
         # req.layout.dim[0].size = 8
         # req.layout.dim[0].stride = 8

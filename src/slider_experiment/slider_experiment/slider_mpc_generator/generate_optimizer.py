@@ -168,7 +168,7 @@ for i in range(mpc_horizon):
     ut = [u[i*nu*nc + j*nu: i*nu*nc + (j+1)*nu] for j in range(nc)]
     
     # Update cost function
-    cost += stage_cost(xt, xt_tar, offset, ut, state_weights * (1-0.02*i), input_weights)
+    cost += stage_cost(xt, xt_tar, offset, ut, state_weights * (1-0.03*i), input_weights)
 
     # Include crash constraint
     constr = constr + crash_constraint(xt, xt_tar)

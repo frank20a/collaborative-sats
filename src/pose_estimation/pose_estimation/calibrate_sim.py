@@ -19,9 +19,9 @@ from numpy import pi
 class Calibrator(Node):
     def __init__(self):
         super().__init__("sim_camera_calibrator")
-        self.declare_parameter('num_images', 15)
-        self.declare_parameter('chessboard_h', 7)
-        self.declare_parameter('chessboard_w', 7)
+        self.declare_parameter('num_images', 20)
+        self.declare_parameter('chessboard_h', 8)
+        self.declare_parameter('chessboard_w', 6)
 
         # Subscribe to the camera topic
         self.flag = False

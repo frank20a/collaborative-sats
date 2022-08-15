@@ -33,8 +33,8 @@
 
     <!-- Camera -->
     <link name="camera">
+        <origin xyz="0 0 0" />
         <visual name="camera_vis">
-            <origin xyz="0 0 0"/>
             <geometry>
                 <box size="${2*cam_size} ${cam_size} ${cam_size}"/>
             </geometry>
@@ -43,7 +43,7 @@
     </link>
 
     <joint name="camera_fix" type="fixed">
-        <origin xyz = "${-0.5*body_x/2} 0 ${body_z / 2 + 0.04}"/>
+        <origin xyz = "${-0.5*body_x/2} 0 ${body_z / 2 + 0.04}" rpy="0 0 ${pi}"/>
         <parent link = "body"/>
         <child link = "camera"/>
     </joint>

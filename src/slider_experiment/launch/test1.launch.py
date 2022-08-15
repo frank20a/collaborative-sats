@@ -29,7 +29,10 @@ def generate_launch_description():
             executable = 'vicon_filter',
             remappings=[
                 ('input', 'vicon/slider_0605/slider_0605'),
-            ]
+            ],
+            parameters = [{
+                'master': True,
+            }]
         )
     )
 

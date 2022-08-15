@@ -12,7 +12,7 @@ import os, sys
 from functools import partial
 
 from .flags import *
-from .slider_mpc_generator.parameters import force, torque, nc, nu
+from .parameters import force, torque, nc, nu
 from .parameters import slider_tuning as tuning
 
 

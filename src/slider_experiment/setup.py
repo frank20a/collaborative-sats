@@ -35,6 +35,7 @@ setup(
             'thruster_test = ' + package_name + '.thruster_test:main',
             'vicon_filter = ' + package_name + '.vicon_filter:main',
             'circle = ' + package_name + '.circle:main',
+            'pose_raw_converter = ' + package_name + '.pose_raw_converter:main',
         ],
     },
 )

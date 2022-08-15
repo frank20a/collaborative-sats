@@ -29,7 +29,7 @@ def generate_launch_description():
             executable = 'vicon_filter',
             name = 'vicon_slider',
             remappings=[
-                ('input', 'vicon/demo_crazyflie3/demo_crazyflie3'),
+                ('input', 'vicon/slider_0605/slider_0605'),
                 ('output', 'slider_0/odom'),
             ],
             parameters=[{
@@ -44,7 +44,7 @@ def generate_launch_description():
             executable = 'vicon_filter',
             name = 'vicon_target',
             remappings=[
-                ('input', 'vicon/ball/ball'),
+                ('input', 'vicon/target_sat/target_sat'),
                 ('output', 'target/estimated_odom'),
             ],
             parameters=[{
@@ -61,7 +61,9 @@ def generate_launch_description():
             executable = 'slider_mpc',
             parameters=[{
                 'nc': nc,
-                'verbose': 2
+                'verbose': 2,
+                'dock_vel': 0.1,
+                'dock_dist': 0.05,
             }],
         )
     )
@@ -92,7 +94,7 @@ def generate_launch_description():
                 namespace = ns,
                 parameters=[{
                     'frequency': 2,
-                    'resolution': 16
+                    'resolution': 10
                 }]
             ),
         )

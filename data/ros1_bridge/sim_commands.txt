@@ -1,0 +1,12 @@
+ros2 topic pub --once /toggle_control std_msgs/msg/Empty
+ros2 topic pub --once /chaser_0/toggle_approach std_msgs/msg/Empty
+ros2 topic pub --once /chaser_0/relative_setpoint geometry_msgs/msg/Pose "{position: {x: 1.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 1.0, w: 0.0}}"
+
+ros2 topic pub --once /set_offset std_msgs/msg/Empty
+ros2 topic pub --once /enable_vicon std_msgs/msg/Empty
+
+ros2 run ros2_utils camera_publisher --ros-args -p camera_id:=0 -r __ns:=/slider_0 -p fps:=30
+ros2 run pose_estimation aruco_board_estimator --ros-args -r input_img:=camera/image_raw -r __ns:=/slider_0
+
+rosrun rosserial_python serial_node.py 
+

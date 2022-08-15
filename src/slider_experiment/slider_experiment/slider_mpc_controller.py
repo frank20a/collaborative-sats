@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
-from geometry_msgs.msg import Wrench, Pose, Twist
+from geometry_msgs.msg import Wrench, Pose, Twist, Vector3
 from std_msgs.msg import Empty
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
@@ -33,7 +33,7 @@ class MPCController2(Node):
         self.declare_parameter('nc', nc)
         self.declare_parameter('freq', 30.0)
         self.declare_parameter('ra_len', 9)
-        self.declare_parameter('dock_dist', 0.4)
+        self.declare_parameter('dock_dist', 0.2)
         self.declare_parameter('dock_vel', 0.07)
         self.declare_parameter('prefix', 'slider')
         
@@ -49,17 +49,12 @@ class MPCController2(Node):
         self.target_twist = None
         self.prev_target_state = [None] * self.ra_len
         self.chaser_states = [None] * self.nc
-        self.cmd = Wrench()
+        self.cmd = Vector3()
         self.cmd_flag = False
         self.approach_flag = [False] * self.nc
 
         # Generate offset
-        self.offset = np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64)
-        # self.offset = np.array([1, 0, 0, 0, 0, 1, 0], dtype=np.float64)
-        if self.nc > 1:
-            self.offset = np.concatenate((self.offset, np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
-        if self.nc > 2:
-            self.offset = np.concatenate((self.offset, np.array([1, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
+        self.offset = np.array([0.45, 0, 0, 0, 0, 0, 1], dtype=np.float64)
         
         # Solver
         sys.path.insert(1, os.path.join(get_package_share_directory('slider_experiment'), 'python_build/slider_mpc'))
@@ -91,7 +86,7 @@ class MPCController2(Node):
 
         # Publishers
         self.pubs = [self.create_publisher(
-            Wrench, 
+            Vector3, 
             self.prefix + f'_{i}/thrust_cmd', 
             QoSPresetProfiles.get_from_short_key('system_default')
         ) for i in range(self.nc)]
@@ -114,6 +109,14 @@ class MPCController2(Node):
 
     def control_callback(self, msg: Empty):
         self.cmd_flag = not self.cmd_flag
+        if not self.cmd_flag:
+            for i in range(self.nc):
+                self.cmd = Vector3()
+                self.cmd.x = 0.0
+                self.cmd.y = 0.0
+                self.cmd.z = 0.0
+                self.pubs[i].publish(self.cmd)
+
         self.get_logger().info("Command flag set to {}".format(self.cmd_flag))
 
     def approach_callback(self, chaser_num: int, msg: Empty):
@@ -164,19 +167,19 @@ class MPCController2(Node):
                 u = np.array(resp.solution)[nu * i: nu * (i + 1)]
             except AttributeError:
                 self.get_logger().error("No Solution")
-                self.cmd.force.x = -self.cmd.force.x / 3
-                self.cmd.force.y = -self.cmd.force.y / 3
-                self.cmd.force.z = -self.cmd.force.z / 3
-                self.cmd.torque.x = -self.cmd.torque.x / 3
-                self.cmd.torque.y = -self.cmd.torque.y / 3
-                self.cmd.torque.z = -self.cmd.torque.z / 3
+                self.cmd.x = -self.cmd.x / 3
+                self.cmd.y = -self.cmd.y / 3
+                # self.cmd.force.z = -self.cmd.force.z / 3
+                # self.cmd.torque.x = -self.cmd.torque.x / 3
+                # self.cmd.torque.y = -self.cmd.torque.y / 3
+                self.cmd.z = -self.cmd.z / 3
             else:
-                self.cmd.force.x = u[0] / force
-                self.cmd.force.y = u[1] / force
-                self.cmd.force.z = 0.0
-                self.cmd.torque.x = 0.0
-                self.cmd.torque.y = 0.0
-                self.cmd.torque.z = u[2] / torque
+                self.cmd.x = u[0] / force
+                self.cmd.y = u[1] / force
+                # self.cmd.force.z = 0.0
+                # self.cmd.torque.x = 0.0
+                # self.cmd.torque.y = 0.0
+                self.cmd.z = u[2] / torque
             finally:
                 self.pubs[i].publish(self.cmd)
         

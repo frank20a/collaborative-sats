@@ -1,7 +1,7 @@
 import casadi as cs
 
-force = 1.2
-torque = 0.54
+force = 1.4
+torque = 0.42
 
 m = 4.528
 Icm = cs.SX(3, 3)
