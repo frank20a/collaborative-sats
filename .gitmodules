@@ -7,3 +7,6 @@
 [submodule "src/ros2-vicon-receiver"]
 	path = src/ros2-vicon-receiver
 	url = https://github.com/frank20a/ros2-vicon-receiver
+[submodule "data/models/gazebo-slider"]
+	path = data/models/gazebo-slider
+	url = https://github.com/LTU-RAI/gazebo-slider
