@@ -34,10 +34,10 @@
             </geometry>
         </visual>
 
-        <visual name="body_visual_panel_left">
-            <origin xyz="0 ${-(cube_y*U + panel_y)/2 - arm} 0" rpy="0 1.0472 0"/>
+        <visual name="sphere">
+            <origin xyz="0 0 ${cube_z/15}" rpy="0 0 0"/>
             <geometry>
-                <box size="${panel_dim}"/>
+                <sphere radius="${cube_z / 20}"/>
             </geometry>
         </visual>
 
@@ -57,7 +57,7 @@
     <joint name="body_fix" type="fixed">
         <!-- <origin xyz="0 0 ${cube_z * U + 0.05}"/>
         <parent link="world"/> -->
-        <origin rpy="0 0 ${pi/2}"/>
+        <origin rpy="${pi/2} ${pi/2} 0"/>
         <parent link="estimated_pose"/>
         <child link="target_body"/>
     </joint>

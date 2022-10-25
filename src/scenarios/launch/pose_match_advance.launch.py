@@ -91,8 +91,10 @@ def generate_launch_description():
                     'name': 'chaser',
                     'suffix': str(i),
                     'initial_pose': (
-                        '{position: {x: -1.0, y:  0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z: -0.258819, w: 0.9659258}}',
-                        '{position: {x: -1.0, y: -0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z:  0.258819, w: 0.9659258}}'
+                        '{position: {x: -1.0, y:  0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z: -0.258819,  w:  0.9659258}}',
+                        '{position: {x: -1.0, y: -0.5, z: 0.95}, orientation: {x: 0.0, y: 0.0, z:  0.258819,  w:  0.9659258}}',
+                        '{position: {x:  1.0, y:  0.5, z: 0.95}, orientation: {x: 0.0, y: 0.0, z:  0.9659258, w: -0.258819 }}',
+                        '{position: {x:  1.0, y: -0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z:  0.9659258, w:  0.258819 }}',
                     )[i]
                 }]
             )

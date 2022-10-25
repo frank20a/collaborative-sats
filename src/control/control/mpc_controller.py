@@ -12,7 +12,9 @@ from numpy import pi
 import os, sys
 
 from .flags import *
-from .parameters import force, torque, mpc_final_weights, mpc_input_weights, mpc_state_weights
+from .parameters import force, torque, solo_tuning
+
+mpc_final_weights, mpc_input_weights, mpc_state_weights = solo_tuning['mpc_final_weights'], solo_tuning['mpc_input_weights'], solo_tuning['mpc_state_weights']
 
 
 class MPCController(Node):

@@ -61,7 +61,9 @@ class MPCController2(Node):
         if self.nc > 1:
             self.offset = np.concatenate((self.offset, np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
         if self.nc > 2:
-            self.offset = np.concatenate((self.offset, np.array([1, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
+            self.offset = np.concatenate((self.offset, np.array([0,  1, 0, 0, 0, 0.7071, -0.7071], dtype=np.float64)))
+        if self.nc > 3:
+            self.offset = np.concatenate((self.offset, np.array([1, 0, 0, 0, 0, 1, 0], dtype=np.float64)))
         
         # Solver
         if self.prefix == 'chaser':

@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Vector3
-from std_msgs.msg import Int16, Int8MultiArray, MultiArrayDimension
+from std_msgs.msg import Int16, UInt8MultiArray, MultiArrayDimension
 from rclpy.qos import QoSPresetProfiles
 from ament_index_python import get_package_share_directory
 
@@ -40,7 +40,7 @@ class ThrustController(Node):
         
         self.create_subscription(Vector3, 'thrust_cmd', self.callback, QoSPresetProfiles.get_from_short_key('system_default'))
         # self.pub = self.create_publisher(Int16, 'thruster_flags', QoSPresetProfiles.get_from_short_key('sensor_data'))
-        self.pub = self.create_publisher(Int8MultiArray, '/thrusters', QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.pub = self.create_publisher(UInt8MultiArray, '/slider/slider_controller', QoSPresetProfiles.get_from_short_key('system_default'))
 
         self.create_timer(1/(self.frequency * self.resolution), self.send_signals)
         
@@ -59,7 +59,7 @@ class ThrustController(Node):
         
     def send_signals(self):
         # req = Int16()
-        req = Int8MultiArray()
+        req = UInt8MultiArray()
         req.data = [int(self.signals[i][self.i]) for i in range(0, 8)]
         # req.layout.dim = [MultiArrayDimension()]
         # req.layout.dim[0].size = 8

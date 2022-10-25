@@ -5,7 +5,7 @@ import opengen as og
 import casadi.casadi as cs
 import os
 
-from parameters import force, torque, dt, m, Icm, nc, nu, nx, mpc_horizon
+from parameters import force, torque, dt, m, Icm, nc, nu, nx, mpc_horizon, falloff
 
 
 def chaser_dynamics_ct(x, u):
@@ -177,7 +177,7 @@ for i in range(mpc_horizon):
     ut = [u[i*nu*nc + j*nu: i*nu*nc + (j+1)*nu] for j in range(nc)]
     
     # Update cost function
-    cost += stage_cost(xt, xt_tar, offset, ut, state_weights * (1-0.02*i), input_weights)
+    cost += stage_cost(xt, xt_tar, offset, ut, state_weights * (1 - falloff * i / (mpc_horizon - 1)), input_weights)
 
     # Include crash constraint
     constr = constr + crash_constraint(xt, xt_tar)

@@ -12,6 +12,7 @@
           <link_name>body</link_name>
           <force_frame>link</force_frame>
       </plugin>
+      
       <plugin name="p3d" filename="libgazebo_ros_p3d.so">
           <frame_name>world</frame_name>
           <body_name>body</body_name>

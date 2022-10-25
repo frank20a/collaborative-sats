@@ -12,9 +12,12 @@ import os, sys
 from functools import partial
 
 from .flags import *
-from .parameters import force, torque, nc, nu
+from .parameters import force, torque
 from .parameters import slider_tuning as tuning
 
+
+nc = 1
+nu = 3
 
 mpc_final_weights = tuning['mpc_final_weights']
 mpc_state_weights = tuning['mpc_state_weights']
@@ -93,7 +96,7 @@ class MPCController2(Node):
         ) for i in range(self.nc)]
         if self.verbose > 1:
             self.d_rp = [self.create_publisher(Pose, '/debug/relative_pose_{}'.format(i), QoSPresetProfiles.get_from_short_key('sensor_data')) for i in range(self.nc)]
-
+            
 
         # Callback to run controller
         self.create_timer(self.dt / 15, self.callback)
@@ -109,7 +112,7 @@ class MPCController2(Node):
             msg.pose.orientation.w
         ], dtype=np.float64)
 
-        # self.get_logger().info("Setpoint for chaser {} set to {}".format(chaser_num, msg.pose))
+        self.get_logger().info("Setpoint for chaser {} set to {}".format(chaser_num, msg.pose))
 
     def control_callback(self, msg: Empty):
         self.cmd_flag = not self.cmd_flag
@@ -192,12 +195,12 @@ class MPCController2(Node):
                 # self.cmd.torque.y = -self.cmd.torque.y / 3
                 self.cmd.z = -self.cmd.z / 3
             else:
-                self.cmd.x = u[0] / force
-                self.cmd.y = u[1] / force
+                self.cmd.x = -u[0] / force
+                self.cmd.y = -u[1] / force
                 # self.cmd.force.z = 0.0
                 # self.cmd.torque.x = 0.0
                 # self.cmd.torque.y = 0.0
-                self.cmd.z = u[2] / torque
+                self.cmd.z = -u[2] / torque
             finally:
                 self.pubs[i].publish(self.cmd)
         

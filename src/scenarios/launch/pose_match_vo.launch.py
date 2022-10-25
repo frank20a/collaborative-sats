@@ -110,8 +110,8 @@ def generate_launch_description():
                 package = 'orbslam',
                 executable = 'mono',
                 arguments = [
-                    './ORB_SLAM3/Vocabulary/ORBvoc.txt',
-                    './data/calibration_files/sim_calibration.yaml',
+                    '/home/frank20a/dev-ws/ORB_SLAM3/Vocabulary/ORBvoc.txt',
+                    '/home/frank20a/dev-ws/data/calibration_files/sim_calibration.yaml',
                 ],
                 # remappings=[
                 #     ('camera/image_raw', 'front_cam/image_raw'),
