@@ -8,25 +8,25 @@ File.version: "1.0"
 Camera.type: "PinHole"
 
 # Rectified Camera calibration (OpenCV)
-Camera1.fx: 1111.4906881063641
-Camera1.fy: 1111.4300019198845
-Camera1.cx: 640.012863332591
-Camera1.cy: 360.15780071704387
+Camera1.fx: 1109.0
+Camera1.fy: 1109.0
+Camera1.cx: 640.0
+Camera1.cy: 360.0
 
 # Camera distortion Coefficients
-Camera1.k1: -0.0011728155019388332
-Camera1.k2: 0.011208794411851906
-Camera1.p1: 0.000175559019095557
-Camera1.p2: -0.00021996415184731175
-Camera1.k3: -0.03103127538788528
+Camera1.k1: 0.0
+Camera1.k2: 0.0
+Camera1.p1: 0.0
+Camera1.p2: 0.0
+Camera1.k3: 0.0
 
 # Camera resolution
 Camera.width: 1280
 Camera.height: 720
 
 # Camera resize
-Camera.newWidth: 600
-Camera.newHeight: 600
+# Camera.newWidth: 600
+# Camera.newHeight: 600
 
 # Camera frames per second 
 Camera.fps: 30
@@ -38,7 +38,7 @@ Camera.RGB: 1
 # ORB Parameters
 #--------------------------------------------------------------------------------------------
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 1250
+ORBextractor.nFeatures: 2500
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2
@@ -50,8 +50,8 @@ ORBextractor.nLevels: 8
 # Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
 # You can lower these values if your images have low contrast			
-ORBextractor.iniThFAST: 20
-ORBextractor.minThFAST: 7
+ORBextractor.iniThFAST: 35
+ORBextractor.minThFAST: 10
 
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters

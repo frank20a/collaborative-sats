@@ -204,13 +204,13 @@ bounds = og.constraints.Rectangle(umin, umax)
 
 
 problem = og.builder.Problem(u, p, cost)    \
-    .with_aug_lagrangian_constraints(
-        constr, 
-        og.constraints.Rectangle(xmin = [0.25] * constr.shape[0], xmax = [1e4] * constr.shape[0]), 
-        og.constraints.BallInf(None, 1e12)
-    )       \
     .with_constraints(bounds)               \
-    # .with_penalty_constraints(constr)       \
+    .with_aug_lagrangian_constraints(
+        constr,
+        og.constraints.Rectangle(xmin = [.4] * constr.shape[0], xmax = [25] * constr.shape[0]), 
+        # og.constraints.BallInf(None, [0.25] * constr.shape[0])
+    )       \
+    # .with_penalty_constraints(-constr)       \
 
 
 meta = og.config.OptimizerMeta()        \

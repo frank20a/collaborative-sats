@@ -36,17 +36,16 @@ def generate_launch_description():
         ),
 
         # Spawn chaser into Gazebo
+        
+
         Node(
-            package='gazebo_ros',
-            executable='spawn_entity.py',
-            name='spawner',
+            package = 'utils',
+            executable = 'spawn_model',
             parameters = [{
-                'use_sim_time': True
-            }],
-            arguments=[
-                '-topic', '/chaser_desc', 
-                '-entity', 'chaser'
-            ]
+                'name': 'chaser',
+                'suffix': '0',
+                'initial_pose': '{position: {x: 0.0, y:  0.0, z: 1.0}, orientation: {x: 0.0, y: 0.0, z: 0.0,  w:  1.0}}'
+            }]
         ),
 
         # Start the calibration process
@@ -57,6 +56,9 @@ def generate_launch_description():
             parameters = [{
                 'use_sim_time': True,
             }],
+            remappings=[
+                ('/sim_camera/image_raw', '/chaser_0/front_cam/image_raw'),
+            ]
         ),
 
         

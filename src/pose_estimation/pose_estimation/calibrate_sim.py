@@ -19,9 +19,9 @@ from numpy import pi
 class Calibrator(Node):
     def __init__(self):
         super().__init__("sim_camera_calibrator")
-        self.declare_parameter('num_images', 20)
-        self.declare_parameter('chessboard_h', 8)
-        self.declare_parameter('chessboard_w', 6)
+        self.declare_parameter('num_images', 100)
+        self.declare_parameter('chessboard_h', 7)
+        self.declare_parameter('chessboard_w', 7)
 
         # Subscribe to the camera topic
         self.flag = False
@@ -150,7 +150,10 @@ class Calibrator(Node):
 def main(args=None):
     rclpy.init(args=args)
     viewer = Calibrator()
-    rclpy.spin(viewer)
+
+    while rclpy.ok() and viewer.num_images > 0:
+        rclpy.spin_once(viewer)
+
     viewer.destroy_node()
     rclpy.shutdown()
 

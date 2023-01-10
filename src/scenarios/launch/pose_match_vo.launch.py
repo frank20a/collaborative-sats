@@ -9,10 +9,16 @@ import os, sys, xacro
 
 
 raw_chaser = xacro.process_file('/home/frank20a/dev-ws/data/models/chaser/chaser.urdf.xacro').toxml()
-raw_target = xacro.process_file('/home/frank20a/dev-ws/data/models/simple_targets/cubesat.urdf.xacro').toxml()
-world = os.path.join('/home/frank20a/dev-ws/data', 'worlds', 'space_realistic.world')
+raw_target = xacro.process_file('/home/frank20a/dev-ws/data/models/eros/eros.urdf.xacro').toxml()
+world = os.path.join('/home/frank20a/dev-ws/data', 'worlds', 'space_meteor.world')
 
-nc = 1
+nc = None
+for arg in sys.argv:
+    if arg.startswith("nc"):
+        nc = int(arg.split(":=")[1])
+
+if nc is None:
+    nc = 1
 
 
 def generate_launch_description():
@@ -45,6 +51,19 @@ def generate_launch_description():
             namespace = 'target',
         )
     )
+
+    # Start Odometry translator
+    ld.add_entity(
+        Node(
+            package = 'utils',
+            executable = 'odometry2tf',
+            parameters = [{
+                'use_sim_time': False
+            }],
+            namespace = 'target'
+        )
+    )
+    
 
     # ================= Chasers =================
     # ld.add_entity(
@@ -85,8 +104,10 @@ def generate_launch_description():
                     'name': 'chaser',
                     'suffix': str(i),
                     'initial_pose': (
-                        '{position: {x: -2.0, y:  0.0, z: 1.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 0.0}}',
-                        '{position: {x: -1.0, y: -0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z:  0.258819, w: 0.9659258}}'
+                        '{position: {x: -3.5, y:  1.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z: -0.258819,  w:  0.9659258}}',
+                        '{position: {x: -3.5, y: -2.5, z: 0.95}, orientation: {x: 0.0, y: 0.0, z:  0.258819,  w:  0.9659258}}',
+                        '{position: {x:  1.0, y:  0.5, z: 0.95}, orientation: {x: 0.0, y: 0.0, z:  0.9659258, w: -0.258819 }}',
+                        '{position: {x:  1.0, y: -0.5, z: 0.75}, orientation: {x: 0.0, y: 0.0, z:  0.9659258, w:  0.258819 }}',
                     )[i]
                 }]
             )
@@ -116,14 +137,14 @@ def generate_launch_description():
                 # remappings=[
                 #     ('camera/image_raw', 'front_cam/image_raw'),
                 # ],
-                namespace='chaser_0',
+                namespace=ns,
             )
         )
         ld.add_entity(
             Node(
                 package = 'scenarios',
                 executable = 'orbslam_filter',
-                namespace='chaser_0',
+                namespace=ns,
             )
         )
 
@@ -132,14 +153,14 @@ def generate_launch_description():
             Node(
                 package = 'control',
                 executable = 'thruster',
-                namespace = 'chaser_' + str(i),
+                namespace = ns,
             ),
         )
         ld.add_entity(
             Node(
                 package = 'control',
                 executable = 'key_teleop',
-                namespace = 'chaser_' + str(i),
+                namespace = ns,
             ),
         )
 

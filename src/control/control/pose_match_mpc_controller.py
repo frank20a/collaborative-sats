@@ -57,7 +57,6 @@ class MPCController2(Node):
 
         # Generate offset
         self.offset = np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64)
-        # self.offset = np.array([1, 0, 0, 0, 0, 1, 0], dtype=np.float64)
         if self.nc > 1:
             self.offset = np.concatenate((self.offset, np.array([0, -1, 0, 0, 0, 0.7071, 0.7071], dtype=np.float64)))
         if self.nc > 2:
@@ -114,6 +113,7 @@ class MPCController2(Node):
         self.create_timer(self.dt / 15, self.callback)
 
     def setpoint_callback(self, chaser_num: int, msg: Pose):
+        self.get_logger().info(f'{self.offset}')
         self.offset[7*chaser_num: 7*(chaser_num+1)] = np.array([
             msg.position.x,
             msg.position.y,
@@ -123,6 +123,7 @@ class MPCController2(Node):
             msg.orientation.z,
             msg.orientation.w
         ], dtype=np.float64)
+        self.get_logger().info(f'{self.offset}')
 
     def control_callback(self, msg: Empty):
         self.cmd_flag = not self.cmd_flag

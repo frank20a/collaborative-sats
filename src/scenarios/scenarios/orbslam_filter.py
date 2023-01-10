@@ -8,11 +8,24 @@ from tf2_ros import LookupException, ExtrapolationException, ConnectivityExcepti
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from tf2_ros.transform_broadcaster import TransformBroadcaster
-from tf_transformations import quaternion_from_euler, euler_from_quaternion
+from tf_transformations import *
+from copy import deepcopy
 
 import numpy as np
 
-from .tf_utils import do_transform_pose
+from .tf_utils import *
+
+
+def sde_solver(a, b, c):
+    if a == 0 or b == c == 0:
+        return None, None
+    d = b**2 - 4*a*c 
+    if d < 0:
+        return None, None
+    elif d < 1e-5:
+        return -b / (2*a), None
+    else:
+        return (-b + np.sqrt(d)) / (2*a), (-b - np.sqrt(d)) / (2*a)
 
 class ORBSLAMFilter(Node):
     def __init__(self):
@@ -24,19 +37,11 @@ class ORBSLAMFilter(Node):
 
         self.broadcaster = TransformBroadcaster(self)
 
-        self.offset = [0.0, 0.0, 2.0]
 
         # Positions
-        self.target_tf = None
-        self.chaser_tf = None
-        self.estim_tf = TransformStamped()
-        self.estim_tf.transform.translation.x = self.offset[0]
-        self.estim_tf.transform.translation.y = self.offset[1]
-        self.estim_tf.transform.translation.z = self.offset[2]
-        # self.prev = Pose()
-        # self.prev.position.x = self.offset[0]
-        # self.prev.position.x = self.offset[1]
-        # self.prev.position.x = self.offset[2]
+        self.target_init_tf = None
+        self.target_curr_tf = None
+        self.target_prev_estim = None
 
         # Subscribers(s)
         self.create_subscription(
@@ -45,66 +50,85 @@ class ORBSLAMFilter(Node):
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
-        self.create_subscription(
-            Odometry,
-            '/target/odom',
-            self.set_target_tf,
-            QoSPresetProfiles.get_from_short_key('sensor_data')
-        )
-
-    def set_target_tf(self, msg):
-        self.target_tf = msg.pose.pose
-        # self.get_logger().info(f'{self.target_tf}')
         
-    def callback(self, msg: Pose):
-        stamp = msg.header.stamp
-        msg = msg.pose
-        msg.position.x += self.offset[0]
-        msg.position.y += self.offset[1]
-        msg.position.z += self.offset[2]
+    def target_odom_callback(self, msg: Odometry):
+        self.target_curr_tf = np.array([
+                msg.pose.pose.position.x,
+                msg.pose.pose.position.y,
+                msg.pose.pose.position.z,
+                msg.pose.pose.orientation.x,
+                msg.pose.pose.orientation.y,
+                msg.pose.pose.orientation.z,
+                msg.pose.pose.orientation.w
+        ])
 
-        if self.chaser_tf is None or self.target_tf is None or self.estim_tf is None:      
-            # self.get_logger().info("NOFIND ch:{} ta:{} es:{}".format(not self.chaser_tf is None, not self.target_tf is None, not self.estim_tf is None))
+        if self.target_init_tf is None:
+            self.target_init_tf = self.target_curr_tf
+        
+    def callback(self, msg: PoseStamped):
+        if self.target_init_tf is None:
             return
-        else:
 
-            tmp = do_transform_pose(msg, self.chaser_tf)
+        est = np.array([
+            msg.pose.position.x,
+            msg.pose.position.y,
+            msg.pose.position.z,
+            msg.pose.orientation.x,
+            msg.pose.orientation.y,
+            msg.pose.orientation.z,
+            msg.pose.orientation.w
+        ])
 
-            factor = np.sqrt(
-                (self.chaser_tf.transform.translation.x - self.target_tf.position.x)**2 + \
-                (self.chaser_tf.transform.translation.y - self.target_tf.position.y)**2 + \
-                (self.chaser_tf.transform.translation.z - self.target_tf.position.z)**2) / np.sqrt(
-                (self.chaser_tf.transform.translation.x - tmp.position.x)**2 + \
-                (self.chaser_tf.transform.translation.y - tmp.position.y)**2 + \
-                (self.chaser_tf.transform.translation.z - tmp.position.z)**2)
-            self.chaser_tf = None
-            self.target_tf = None
-            self.estim_tf = None
+        if self.target_curr_tf is not None:
+            D2 = self.target_curr_tf[0]**2 + self.target_curr_tf[1]**2 + self.target_curr_tf[2]**2
+            
+            f1, f2 = sde_solver(
+                est[0]**2 + est[1]**2 + est[2]**2,
+                2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2]),
+                self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2
+            )
 
-        # self.prev = msg
-        self.get_logger().info(f'factor: {factor:1.3f}')
+            self.get_logger().info(f'\nA= {est[0]**2 + est[1]**2 + est[2]**2}\nB= {2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2])}\nC= {self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2}\n')
+            self.get_logger().info(f'\nf1 = {f1}\nf2 = {f2}\n')
+
+            if f1 is None or f2 is None:
+                f = 0
+            else:
+                f = max(f1, f2)
+                f = f1
 
         req = TransformStamped()
-        req.header.stamp = stamp
-        req.header.frame_id = (self.get_namespace() + '/camera_optical').strip('/')
-        req.child_frame_id = (self.get_namespace() + '/estimated_pose').strip('/')
-        req.transform.translation.x = msg.position.x * factor
-        req.transform.translation.y = msg.position.y * factor
-        req.transform.translation.z = msg.position.z * factor
-
-        q = np.array([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w])
-        # eul = euler_from_quaternion(q)
-        # q = quaternion_from_euler(eul[0] * factor, eul[1] * factor, eul[2] * factor)
+        req.header.stamp = msg.header.stamp
+        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose'
         
-        req.transform.rotation.x = q[0]
-        req.transform.rotation.y = q[1]
-        req.transform.rotation.z = q[2]
-        req.transform.rotation.w = q[3]
-
-        # self.get_logger().info('Publishing transform: {}'.format(req))
+        req.transform.translation.x = self.target_init_tf[0] + est[0] * f
+        req.transform.translation.y = self.target_init_tf[1] + est[1] * f
+        req.transform.translation.z = self.target_init_tf[2] + est[2] * f
+        req.transform.rotation.x = self.target_init_tf[3]
+        req.transform.rotation.y = self.target_init_tf[4]
+        req.transform.rotation.z = self.target_init_tf[5]
+        req.transform.rotation.w = self.target_init_tf[6]
 
         self.broadcaster.sendTransform(req)
+
+        req = TransformStamped()
+        req.header.stamp = msg.header.stamp
+        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        req.child_frame_id = self.get_namespace().strip('/') + '/raw_estimation'
         
+        req.transform.translation.x = self.target_init_tf[0] + est[0]
+        req.transform.translation.y = self.target_init_tf[1] + est[1]
+        req.transform.translation.z = self.target_init_tf[2] + est[2]
+        req.transform.rotation.x = self.target_init_tf[3]
+        req.transform.rotation.y = self.target_init_tf[4]
+        req.transform.rotation.z = self.target_init_tf[5]
+        req.transform.rotation.w = self.target_init_tf[6]
+
+        self.broadcaster.sendTransform(req)
+
+        self.target_curr_tf = None
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -113,15 +137,36 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(node)
         
-        if node.chaser_tf is None:
+        if node.target_curr_tf is None:
             try:
-                node.chaser_tf = node.buffer.lookup_transform('world', (node.get_namespace() + '/camera_optical').lstrip('/'), Time(seconds=0))
+                tmp = node.buffer.lookup_transform((node.get_namespace() + '/camera_optical').lstrip('/'), 'target/body', Time(seconds=0))
+                node.target_curr_tf = np.array([
+                        tmp.transform.translation.x,
+                        tmp.transform.translation.y,
+                        tmp.transform.translation.z,
+                        tmp.transform.rotation.x,
+                        tmp.transform.rotation.y,
+                        tmp.transform.rotation.z,
+                        tmp.transform.rotation.w
+                ])
+
+                if node.target_init_tf is None:
+                    node.target_init_tf = node.target_curr_tf
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
         
-        if node.estim_tf is None:
+        if node.target_prev_estim is None:
             try:
-                node.estim_tf = node.buffer.lookup_transform('world', (node.get_namespace() + '/estimated_pose').lstrip('/'), Time(seconds=0))
+                tmp = node.buffer.lookup_transform((node.get_namespace() + '/camera_optical').lstrip('/'), 'target/body', Time(seconds=0))
+                node.target_curr_tf = np.array([
+                        tmp.transform.translation.x,
+                        tmp.transform.translation.y,
+                        tmp.transform.translation.z,
+                        tmp.transform.rotation.x,
+                        tmp.transform.rotation.y,
+                        tmp.transform.rotation.z,
+                        tmp.transform.rotation.w
+                ])
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
     

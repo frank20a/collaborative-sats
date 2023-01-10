@@ -1,0 +1,13 @@
+digraph G {
+"chaser_0/body" -> "chaser_0/camera"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"world" -> "chaser_0/body"[label=" Broadcaster: default_authority\nAverage rate: 29.613\nBuffer length: 4.964\nMost recent transform: 68.24\nOldest transform: 63.276\n"];
+"chaser_0/camera" -> "chaser_0/camera_optical"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"chaser_0/body" -> "chaser_0/grabber"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"world" -> "target/body"[label=" Broadcaster: default_authority\nAverage rate: 29.612\nBuffer length: 4.998\nMost recent transform: 68.272\nOldest transform: 63.274\n"];
+"estimated_pose" -> "target_body"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"chaser_0/camera_optical" -> "chaser_0/estimated_pose"[label=" Broadcaster: default_authority\nAverage rate: 29.502\nBuffer length: 4.983\nMost recent transform: 1673383095.667284\nOldest transform: 1673383090.684547\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1673383095.6945732"[ shape=plaintext ] ;
+}->"estimated_pose";
+}

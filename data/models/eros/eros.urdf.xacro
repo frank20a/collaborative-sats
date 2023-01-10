@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cubesat">
+    <xacro:include filename="macros.xacro"/>
+
+    <!-- World -->
+    <link name="estimated_pose"></link>
+
+    <!-- Body -->
+    <link name="target_body">
+        <collision name="body_collision">
+            <origin rpy="0 ${pi/2} 0"/>
+            <geometry>
+                <cylinder radius="0.65" length="3.15"/>
+            </geometry>
+        </collision>
+
+        <visual name="body_visual_cube">
+            <origin rpy="0 0 ${pi/2}"/>
+            <geometry>
+                <mesh filename="/home/frank20a/dev-ws/models/eros/meshes/eros.dae"/>
+            </geometry>
+        </visual>
+
+        <xacro:inertial_box mass="5" x="0.4" y="0.4" z="0.6">
+            <origin xyz="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="body_fix" type="fixed">
+        <!-- <origin xyz="0 0 ${cube_z * U + 0.05}"/>
+        <parent link="world"/> -->
+        <origin rpy="0 0 ${pi/2}"/>
+        <parent link="estimated_pose"/>
+        <child link="target_body"/>
+    </joint>
+
+    <xacro:include filename="gazebo.xacro"/>
+</robot>

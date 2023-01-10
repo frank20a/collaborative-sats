@@ -1,0 +1,219 @@
+<sdf version='1.7'>
+  <world name='default'>
+
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <update_rate>1.0</update_rate>
+    </plugin>
+
+    <gravity>0 0 0</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+    <physics type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <scene>
+      <ambient>0.4 0.4 0.38 1</ambient>
+      <!-- <sky>
+        <uri>/home/frank20a/Desktop/spacebox/spacebox.dds</uri>
+      </sky> -->
+      <background>0.175 0.175 0.175 1</background>
+      <shadows>1</shadows>
+    </scene>
+    <wind/>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>0</latitude_deg>
+      <longitude_deg>0</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+    <model name='eros'>
+      <static>0</static>
+      <link name='body'>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1.25</mass>
+          <inertia>
+            <ixx>0.00520833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.00520833</iyy>
+            <iyz>0</iyz>
+            <izz>0.00208333</izz>
+          </inertia>
+        </inertial>
+        <collision name='body_collision_collision'>
+          <pose>0 0 0 0 1.57 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.65</radius>
+              <length>3.15</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <friction>
+              <ode/>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='body_visual_cube_visual'>
+          <pose>0 0 0 -1.57 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/frank20a/dev-ws/data/models/eros/meshes/eros_2.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+              <script>
+                  <uri>/home/frank20a/dev-ws/data/models/eros/materials/scripts/</uri>
+                  <uri>/home/frank20a/dev-ws/data/models/eros/materials/textures/</uri>
+                  <name>ErosMat</name>
+              </script>
+              <!-- <shader type='normal_map_tangent_space'>
+                  <normal_map>/home/frank20a/dev-ws/models/eros/materials/textures/image0_norm.jpg</normal_map>
+              </shader> -->
+          </material>
+        </visual>
+        <gravity>0</gravity>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='body_fix' type='fixed'>
+        <parent>estimated_tf</parent>
+        <child>body</child>
+      </joint>
+      <plugin name="controller_plugin" filename="libgazebo_ros_force.so">
+          <link_name>body</link_name>
+          <force_frame>link</force_frame>
+          <ros>
+            <namespace>target</namespace>
+          </ros>
+      </plugin>
+      <plugin name="p3d" filename="libgazebo_ros_p3d.so">
+          <frame_name>world</frame_name>
+          <body_name>body</body_name>
+          <topic_name>odom</topic_name>
+          <update_rate>30.0</update_rate>
+          <ros>
+            <namespace>target</namespace>
+          </ros>
+      </plugin>
+      <pose>1 0 1 0 -0 0</pose>
+    </model>
+    <light name='light1' type='point'>
+      <pose>-5.74255 -0.427307 1 0 -0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>150</range>
+        <constant>-1</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <direction>0 0 -1</direction>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <light name='light2' type='point'>
+      <pose>0.004052 8.09314 10 0 -0 0</pose>
+      <diffuse>0.498039 0.498039 0.498039 1</diffuse>
+      <specular>0.0980392 0.0980392 0.0980392 1</specular>
+      <direction>0 0 -1</direction>
+      <attenuation>
+        <range>150</range>
+        <constant>-1</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <light name='light3' type='point'>
+      <pose>0.239835 -8.57674 10 0 -0 0</pose>
+      <diffuse>0.498039 0.498039 0.498039 1</diffuse>
+      <specular>0.0980392 0.0980392 0.0980392 1</specular>
+      <direction>0 0 -1</direction>
+      <attenuation>
+        <range>150</range>
+        <constant>-1</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <light name='light4' type='point'>
+      <pose>15.0737 1.15966 10 0 -0 0</pose>
+      <diffuse>0.498039 0.498039 0.498039 1</diffuse>
+      <specular>0.0980392 0.0980392 0.0980392 1</specular>
+      <direction>0 0 -1</direction>
+      <attenuation>
+        <range>150</range>
+        <constant>-1</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>0</cast_shadows>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <state world_name='default'>
+      <model name='eros'>
+        <pose>0 0 1 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='body'>
+          <pose>0 0 1 0 0 -1.571</pose>
+          <velocity>0 0 0 0 0 0</velocity>
+          <acceleration>0 0 0 0 0 0</acceleration>
+          <wrench>0 0 0 0 0 0</wrench>
+        </link>
+      </model>
+      <light name='light1'>
+        <pose>-20 0 20 0 -0 0</pose>
+      </light>
+      <light name='light2'>
+        <pose>0 20 20 0 -0 0</pose>
+      </light>
+      <light name='light3'>
+        <pose>20 0 20 0 -0 0</pose>
+      </light>
+      <light name='light4'>
+        <pose>0 -20 20 0 -0 0</pose>
+      </light>
+    </state>
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>-1.96982 -4.86027 4.29154 -0 0.580655 1.01694</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>
