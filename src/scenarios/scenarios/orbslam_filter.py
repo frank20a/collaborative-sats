@@ -16,6 +16,13 @@ import numpy as np
 from .tf_utils import *
 
 
+def abs_min(a, b):
+    if abs(a) < abs(b):
+        return a
+    else:
+        return b
+
+
 def sde_solver(a, b, c):
     if a == 0 or b == c == 0:
         return None, None
@@ -42,6 +49,8 @@ class ORBSLAMFilter(Node):
         self.target_init_tf = None
         self.target_curr_tf = None
         self.target_prev_estim = None
+        self.camera_init_tf = None
+        self.camera_curr_tf = None
 
         # Subscribers(s)
         self.create_subscription(
@@ -69,6 +78,8 @@ class ORBSLAMFilter(Node):
         if self.target_init_tf is None:
             return
 
+        verb = ''
+
         est = np.array([
             msg.pose.position.x,
             msg.pose.position.y,
@@ -88,46 +99,49 @@ class ORBSLAMFilter(Node):
                 self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2
             )
 
-            self.get_logger().info(f'\nA= {est[0]**2 + est[1]**2 + est[2]**2}\nB= {2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2])}\nC= {self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2}\n')
-            self.get_logger().info(f'\nf1 = {f1}\nf2 = {f2}\n')
-
             if f1 is None or f2 is None:
                 f = 0
             else:
-                f = max(f1, f2)
-                f = f1
+                f = abs_min(f1, f2)
 
+            verb += f'\nA= {est[0]**2 + est[1]**2 + est[2]**2}\nB= {2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2])}\nC= {self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2}\n'
+            verb += f'\nf1 = {f1}\nf2 = {f2}\nf = {f}\n'
+
+        # Create Tranform
         req = TransformStamped()
         req.header.stamp = msg.header.stamp
         req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
         req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose'
-        
-        req.transform.translation.x = self.target_init_tf[0] + est[0] * f
-        req.transform.translation.y = self.target_init_tf[1] + est[1] * f
-        req.transform.translation.z = self.target_init_tf[2] + est[2] * f
-        req.transform.rotation.x = self.target_init_tf[3]
-        req.transform.rotation.y = self.target_init_tf[4]
-        req.transform.rotation.z = self.target_init_tf[5]
-        req.transform.rotation.w = self.target_init_tf[6]
+        # Calculate e-movement
+        trans = self.target_init_tf[:3] + est[:3] * f
+        trans = vector_rotate_quaternion(trans, quaternion_conjugate(quaternion_multiply(self.target_init_tf[3:], quaternion_inverse(self.target_curr_tf[3:]))))
+        q = quaternion_multiply(est[3:], self.camera_init_tf[3:])
+        # verb += f'\nq_est= [{est[3]:.2f}, {est[4]:.2f}, {est[5]:.2f}, {est[6]:.2f}]\nq_init= [{self.target_init_tf[3]:.2f}, {self.target_init_tf[4]:.2f}, {self.target_init_tf[5]:.2f}, {self.target_init_tf[6]:.2f}]\n'
+
+        req.transform.translation.x = float(trans[0])
+        req.transform.translation.y = float(trans[1])
+        req.transform.translation.z = float(trans[2])
+        req.transform.rotation.x = q[0]
+        req.transform.rotation.y = q[1]
+        req.transform.rotation.z = q[2]
+        req.transform.rotation.w = q[3]
 
         self.broadcaster.sendTransform(req)
-
-        req = TransformStamped()
-        req.header.stamp = msg.header.stamp
-        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
-        req.child_frame_id = self.get_namespace().strip('/') + '/raw_estimation'
         
+        # Publish the raw estimation with no scaling
+        req.child_frame_id = self.get_namespace().strip('/') + '/raw_estimation'
         req.transform.translation.x = self.target_init_tf[0] + est[0]
         req.transform.translation.y = self.target_init_tf[1] + est[1]
         req.transform.translation.z = self.target_init_tf[2] + est[2]
-        req.transform.rotation.x = self.target_init_tf[3]
-        req.transform.rotation.y = self.target_init_tf[4]
-        req.transform.rotation.z = self.target_init_tf[5]
-        req.transform.rotation.w = self.target_init_tf[6]
-
         self.broadcaster.sendTransform(req)
 
         self.target_curr_tf = None
+        self.camera_curr_tf = None
+        self.target_prev_estim = None
+
+        verb = f'\n{"="*150}\n' + verb
+        verb += f'\n\n{"="*150}'
+        self.get_logger().info(verb)
 
 
 def main(args=None):
@@ -167,6 +181,23 @@ def main(args=None):
                         tmp.transform.rotation.z,
                         tmp.transform.rotation.w
                 ])
+            except (LookupException, ConnectivityException, ExtrapolationException):
+                pass
+
+        if node.camera_curr_tf is None:
+            try:
+                tmp = node.buffer.lookup_transform((node.get_namespace() + '/camera_optical').lstrip('/'), 'target/body', Time(seconds=0))
+                node.camera_curr_tf = np.array([
+                        tmp.transform.translation.x,
+                        tmp.transform.translation.y,
+                        tmp.transform.translation.z,
+                        tmp.transform.rotation.x,
+                        tmp.transform.rotation.y,
+                        tmp.transform.rotation.z,
+                        tmp.transform.rotation.w
+                ])
+                if node.camera_init_tf is None:
+                    node.camera_init_tf = node.camera_curr_tf
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
     
