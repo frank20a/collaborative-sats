@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
-from geometry_msgs.msg import Pose, TransformStamped, PoseStamped
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import TransformStamped, PoseStamped
+from std_msgs.msg import String
 from rclpy.qos import QoSPresetProfiles
 from tf2_ros import LookupException, ExtrapolationException, ConnectivityException
 from tf2_ros.buffer import Buffer
@@ -22,17 +22,29 @@ def abs_min(a, b):
     else:
         return b
 
+def abs_min_conditional(a, b, c):
+    if abs(a) < abs(b):
+        if abs(a) <= c:
+            return a
+        else:
+            return b
+    else:
+        if abs(b) >= c:
+            return b
+        else:
+            return a
+
 
 def sde_solver(a, b, c):
-    if a == 0 or b == c == 0:
-        return None, None
-    d = b**2 - 4*a*c 
-    if d < 0:
-        return None, None
-    elif d < 1e-5:
-        return -b / (2*a), None
-    else:
-        return (-b + np.sqrt(d)) / (2*a), (-b - np.sqrt(d)) / (2*a)
+    if a == 0:
+        if b == 0:
+            return None, None
+        else:
+            return -c / b, -c / b
+
+    d = b**2 - 4*a*c
+
+    return (-b + np.emath.sqrt(d)) / (2*a), (-b - np.emath.sqrt(d)) / (2*a)
 
 class ORBSLAMFilter(Node):
     def __init__(self):
@@ -48,9 +60,10 @@ class ORBSLAMFilter(Node):
         # Positions
         self.target_init_tf = None
         self.target_curr_tf = None
-        self.target_prev_estim = None
-        self.camera_init_tf = None
-        self.camera_curr_tf = None
+        self.estim_curr_tf = None
+
+        # Factors
+        self.fs = [1, 1]
 
         # Subscribers(s)
         self.create_subscription(
@@ -59,23 +72,31 @@ class ORBSLAMFilter(Node):
             self.callback,
             QoSPresetProfiles.get_from_short_key('sensor_data')
         )
-        
-    def target_odom_callback(self, msg: Odometry):
-        self.target_curr_tf = np.array([
-                msg.pose.pose.position.x,
-                msg.pose.pose.position.y,
-                msg.pose.pose.position.z,
-                msg.pose.pose.orientation.x,
-                msg.pose.pose.orientation.y,
-                msg.pose.pose.orientation.z,
-                msg.pose.pose.orientation.w
-        ])
+        self.verbose = self.create_publisher(
+            String,
+            'orbslam_verbose',
+            QoSPresetProfiles.get_from_short_key('system_default')
+        )
 
-        if self.target_init_tf is None:
-            self.target_init_tf = self.target_curr_tf
-        
+    def do_tf_calculations(self, tf, est, f):
+        # Calculate e-movement
+        trans = self.target_init_tf[:3] + est[:3] * f
+        trans = vector_rotate_quaternion(trans, quaternion_conjugate(quaternion_multiply(self.estim_curr_tf[3:], quaternion_conjugate(self.target_init_tf[3:]))))
+        q = quaternion_multiply(est[3:], self.target_init_tf[3:])
+
+        # Set the tf
+        tf.transform.translation.x = float(trans[0])
+        tf.transform.translation.y = float(trans[1])
+        tf.transform.translation.z = float(trans[2])
+        tf.transform.rotation.x = q[0]
+        tf.transform.rotation.y = q[1]
+        tf.transform.rotation.z = q[2]
+        tf.transform.rotation.w = q[3]
+
+        return tf
+
     def callback(self, msg: PoseStamped):
-        if self.target_init_tf is None:
+        if self.target_init_tf is None or self.estim_curr_tf is None:
             return
 
         verb = ''
@@ -99,49 +120,49 @@ class ORBSLAMFilter(Node):
                 self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2
             )
 
-            if f1 is None or f2 is None:
-                f = 0
-            else:
-                f = abs_min(f1, f2)
+            verb += f'\nA= {est[0]**2 + est[1]**2 + est[2]**2:.3f}\nB= {2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2]):.3f}\nC= {self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2:.3f}\n'
+            if f1 is not None and f2 is not None:
+                if np.iscomplex(f1) or np.iscomplex(f2):
+                    f1 = np.abs(f1)
+                    f2 = np.abs(f2) * -1
+                self.fs = [f1, f2]
+            f = abs_min(self.fs[0], self.fs[1])
 
-            verb += f'\nA= {est[0]**2 + est[1]**2 + est[2]**2}\nB= {2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2])}\nC= {self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2}\n'
-            verb += f'\nf1 = {f1}\nf2 = {f2}\nf = {f}\n'
+            try:
+                verb += f'\nf1 = {f1:.3f}\nf2 = {f2:.3f}\nf = {f:.3f}\n'
+            except TypeError:
+                verb += f'\nf1 = {f1}\nf2 = {f2}\nf = {f}\n'
 
-        # Create Tranform
+        # Create and Publish the tf
         req = TransformStamped()
         req.header.stamp = msg.header.stamp
         req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
         req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose'
-        # Calculate e-movement
-        trans = self.target_init_tf[:3] + est[:3] * f
-        trans = vector_rotate_quaternion(trans, quaternion_conjugate(quaternion_multiply(self.target_init_tf[3:], quaternion_inverse(self.target_curr_tf[3:]))))
-        q = quaternion_multiply(est[3:], self.camera_init_tf[3:])
-        # verb += f'\nq_est= [{est[3]:.2f}, {est[4]:.2f}, {est[5]:.2f}, {est[6]:.2f}]\nq_init= [{self.target_init_tf[3]:.2f}, {self.target_init_tf[4]:.2f}, {self.target_init_tf[5]:.2f}, {self.target_init_tf[6]:.2f}]\n'
+        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, f))
 
-        req.transform.translation.x = float(trans[0])
-        req.transform.translation.y = float(trans[1])
-        req.transform.translation.z = float(trans[2])
-        req.transform.rotation.x = q[0]
-        req.transform.rotation.y = q[1]
-        req.transform.rotation.z = q[2]
-        req.transform.rotation.w = q[3]
+        req = TransformStamped()
+        req.header.stamp = msg.header.stamp
+        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_1'
+        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, self.fs[0]))
 
-        self.broadcaster.sendTransform(req)
+        
+        req = TransformStamped()
+        req.header.stamp = msg.header.stamp
+        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_2'
+        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, self.fs[1]))
         
         # Publish the raw estimation with no scaling
+        req = TransformStamped()
+        req.header.stamp = msg.header.stamp
+        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
         req.child_frame_id = self.get_namespace().strip('/') + '/raw_estimation'
-        req.transform.translation.x = self.target_init_tf[0] + est[0]
-        req.transform.translation.y = self.target_init_tf[1] + est[1]
-        req.transform.translation.z = self.target_init_tf[2] + est[2]
-        self.broadcaster.sendTransform(req)
+        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, 1))
 
         self.target_curr_tf = None
-        self.camera_curr_tf = None
-        self.target_prev_estim = None
-
-        verb = f'\n{"="*150}\n' + verb
-        verb += f'\n\n{"="*150}'
-        self.get_logger().info(verb)
+        
+        self.verbose.publish(String(data=verb))
 
 
 def main(args=None):
@@ -166,13 +187,15 @@ def main(args=None):
 
                 if node.target_init_tf is None:
                     node.target_init_tf = node.target_curr_tf
+                if node.estim_curr_tf is None:
+                    node.estim_curr_tf = node.target_curr_tf
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
         
-        if node.target_prev_estim is None:
+        if node.estim_curr_tf is None:
             try:
-                tmp = node.buffer.lookup_transform((node.get_namespace() + '/camera_optical').lstrip('/'), 'target/body', Time(seconds=0))
-                node.target_curr_tf = np.array([
+                tmp = node.buffer.lookup_transform((node.get_namespace() + '/camera_optical').lstrip('/'), 'target_body', Time(seconds=0))
+                node.estim_curr_tf = np.array([
                         tmp.transform.translation.x,
                         tmp.transform.translation.y,
                         tmp.transform.translation.z,
@@ -181,23 +204,6 @@ def main(args=None):
                         tmp.transform.rotation.z,
                         tmp.transform.rotation.w
                 ])
-            except (LookupException, ConnectivityException, ExtrapolationException):
-                pass
-
-        if node.camera_curr_tf is None:
-            try:
-                tmp = node.buffer.lookup_transform((node.get_namespace() + '/camera_optical').lstrip('/'), 'target/body', Time(seconds=0))
-                node.camera_curr_tf = np.array([
-                        tmp.transform.translation.x,
-                        tmp.transform.translation.y,
-                        tmp.transform.translation.z,
-                        tmp.transform.rotation.x,
-                        tmp.transform.rotation.y,
-                        tmp.transform.rotation.z,
-                        tmp.transform.rotation.w
-                ])
-                if node.camera_init_tf is None:
-                    node.camera_init_tf = node.camera_curr_tf
             except (LookupException, ConnectivityException, ExtrapolationException):
                 pass
     
