@@ -24,7 +24,7 @@ def abs_min(a, b):
 
 def abs_min_conditional(a, b, c):
     if abs(a) < abs(b):
-        if abs(a) <= c:
+        if abs(a) >= c:
             return a
         else:
             return b
@@ -45,6 +45,16 @@ def sde_solver(a, b, c):
     d = b**2 - 4*a*c
 
     return (-b + np.emath.sqrt(d)) / (2*a), (-b - np.emath.sqrt(d)) / (2*a)
+
+
+def decide_tf(tf1, tf2):
+    theta1 = np.arccos(tf1.transform.translation.z / np.linalg.norm([tf1.transform.translation.x, tf1.transform.translation.y, tf1.transform.translation.z]))
+    theta2 = np.arccos(tf2.transform.translation.z / np.linalg.norm([tf2.transform.translation.x, tf2.transform.translation.y, tf2.transform.translation.z]))
+
+    if theta1 < theta2:
+        return tf1
+    return tf2
+
 
 class ORBSLAMFilter(Node):
     def __init__(self):
@@ -78,10 +88,12 @@ class ORBSLAMFilter(Node):
             QoSPresetProfiles.get_from_short_key('system_default')
         )
 
-    def do_tf_calculations(self, tf, est, f):
+    def do_tf_calculations(self, est, f):
+        tf = TransformStamped()
+
         # Calculate e-movement
         trans = self.target_init_tf[:3] + est[:3] * f
-        trans = vector_rotate_quaternion(trans, quaternion_conjugate(quaternion_multiply(self.estim_curr_tf[3:], quaternion_conjugate(self.target_init_tf[3:]))))
+        trans = vector_rotate_quaternion(trans, quaternion_conjugate(quaternion_multiply(self.target_init_tf[3:], quaternion_inverse(self.estim_curr_tf[3:]))))
         q = quaternion_multiply(est[3:], self.target_init_tf[3:])
 
         # Set the tf
@@ -123,42 +135,43 @@ class ORBSLAMFilter(Node):
             verb += f'\nA= {est[0]**2 + est[1]**2 + est[2]**2:.3f}\nB= {2 * (self.target_init_tf[0] * est[0] + self.target_init_tf[1] * est[1] + self.target_init_tf[2] * est[2]):.3f}\nC= {self.target_init_tf[0]**2 + self.target_init_tf[1]**2 + self.target_init_tf[2]**2 - D2:.3f}\n'
             if f1 is not None and f2 is not None:
                 if np.iscomplex(f1) or np.iscomplex(f2):
-                    f1 = np.abs(f1)
-                    f2 = np.abs(f2) * -1
+                    # f1 = np.abs(f1)
+                    # f2 = np.abs(f2) * -1
+                    f1 = f1.real 
+                    f2 = f2.real * -1
                 self.fs = [f1, f2]
-            f = abs_min(self.fs[0], self.fs[1])
 
             try:
-                verb += f'\nf1 = {f1:.3f}\nf2 = {f2:.3f}\nf = {f:.3f}\n'
+                verb += f'\nf1 = {f1:.3f}\nf2 = {f2:.3f}\n'
             except TypeError:
-                verb += f'\nf1 = {f1}\nf2 = {f2}\nf = {f}\n'
+                verb += f'\nf1 = {f1}\nf2 = {f2}\n'
 
-        # Create and Publish the tf
-        req = TransformStamped()
+
+        tf1 = self.do_tf_calculations(est, self.fs[0])
+        # tf1.header.stamp = msg.header.stamp
+        # tf1.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        # tf1.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_1'
+        # self.broadcaster.sendTransform(tf1)
+
+        
+        tf2 = self.do_tf_calculations(est, self.fs[1])
+        # tf2.header.stamp = msg.header.stamp
+        # tf2.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        # tf2.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_2'
+        # self.broadcaster.sendTransform(tf2)
+
+        req = decide_tf(tf1, tf2)
         req.header.stamp = msg.header.stamp
         req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
         req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose'
-        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, f))
-
-        req = TransformStamped()
-        req.header.stamp = msg.header.stamp
-        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
-        req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_1'
-        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, self.fs[0]))
-
-        
-        req = TransformStamped()
-        req.header.stamp = msg.header.stamp
-        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
-        req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_2'
-        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, self.fs[1]))
+        self.broadcaster.sendTransform(req)
         
         # Publish the raw estimation with no scaling
-        req = TransformStamped()
-        req.header.stamp = msg.header.stamp
-        req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
-        req.child_frame_id = self.get_namespace().strip('/') + '/raw_estimation'
-        self.broadcaster.sendTransform(self.do_tf_calculations(req, est, 1))
+        # req = self.do_tf_calculations(est, 1)
+        # req.header.stamp = msg.header.stamp
+        # req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        # req.child_frame_id = self.get_namespace().strip('/') + '/raw_estimation'
+        # self.broadcaster.sendTransform(req)
 
         self.target_curr_tf = None
         
