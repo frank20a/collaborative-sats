@@ -72,6 +72,9 @@ class ORBSLAMFilter(Node):
         self.target_curr_tf = None
         self.estim_curr_tf = None
 
+        self.target_pose = None
+        self.chaser_pose = None
+
         # Factors
         self.fs = [1, 1]
 
@@ -88,6 +91,31 @@ class ORBSLAMFilter(Node):
             QoSPresetProfiles.get_from_short_key('system_default')
         )
 
+        self.create_subscription(Odometry, 'odom', self.chaser_odom_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
+        self.create_subscription(Odometry, '/target/odom', self.target_odom_callback, QoSPresetProfiles.get_from_short_key('sensor_data'))
+
+    def chaser_odom_callback(self, msg: Odometry):
+        self.chaser_pose = msg.pose.pose
+
+    def decide_tf(self, tf1: TransformStamped, tf2: TransformStamped):
+        d1 = np.linalg.norm([
+            tf1.transform.translation.x - self.target_curr_tf[0],
+            tf1.transform.translation.y - self.target_curr_tf[1], 
+            tf1.transform.translation.z - self.target_curr_tf[2]
+        ])
+        d2 = np.linalg.norm([
+            tf2.transform.translation.x - self.target_curr_tf[0],
+            tf2.transform.translation.y - self.target_curr_tf[1], 
+            tf2.transform.translation.z - self.target_curr_tf[2]
+        ])
+
+        if d1 < d2:
+            return tf1
+        return tf2
+
+    def target_odom_callback(self, msg: Odometry):
+        self.target_pose = msg.pose.pose
+
     def do_tf_calculations(self, est, f):
         tf = TransformStamped()
 
@@ -95,6 +123,7 @@ class ORBSLAMFilter(Node):
         trans = self.target_init_tf[:3] + est[:3] * f
         trans = vector_rotate_quaternion(trans, quaternion_conjugate(quaternion_multiply(self.target_init_tf[3:], quaternion_inverse(self.estim_curr_tf[3:]))))
         q = quaternion_multiply(est[3:], self.target_init_tf[3:])
+        q = quaternion_multiply(q, [0, 0, 0.7071068, 0.7071068])
 
         # Set the tf
         tf.transform.translation.x = float(trans[0])
@@ -146,25 +175,40 @@ class ORBSLAMFilter(Node):
             except TypeError:
                 verb += f'\nf1 = {f1}\nf2 = {f2}\n'
 
+        eul = None
+        if self.target_pose is not None and self.chaser_pose is not None:
+            q_ = quaternion_from_euler(
+                0.0,
+                np.arctan2(- self.target_pose.position.z + self.chaser_pose.position.z, np.sqrt((self.target_pose.position.x - self.chaser_pose.position.x)**2 + (self.target_pose.position.y - self.chaser_pose.position.y)**2)),
+                np.arctan2(self.target_pose.position.y - self.chaser_pose.position.y, self.target_pose.position.x - self.chaser_pose.position.x),
+            )
+            qq_ = [
+                self.chaser_pose.orientation.x,
+                self.chaser_pose.orientation.y,
+                self.chaser_pose.orientation.z,
+                self.chaser_pose.orientation.w
+            ]
+            eul = euler_from_quaternion(quaternion_multiply(q_, quaternion_conjugate(qq_)))
 
         tf1 = self.do_tf_calculations(est, self.fs[0])
-        # tf1.header.stamp = msg.header.stamp
-        # tf1.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
-        # tf1.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_1'
-        # self.broadcaster.sendTransform(tf1)
+        tf1.header.stamp = msg.header.stamp
+        tf1.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        tf1.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_1'
 
         
         tf2 = self.do_tf_calculations(est, self.fs[1])
-        # tf2.header.stamp = msg.header.stamp
-        # tf2.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
-        # tf2.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_2'
-        # self.broadcaster.sendTransform(tf2)
+        tf2.header.stamp = msg.header.stamp
+        tf2.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
+        tf2.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose_2'
 
-        req = decide_tf(tf1, tf2)
+        req = self.decide_tf(tf1, tf2)
         req.header.stamp = msg.header.stamp
         req.header.frame_id = self.get_namespace().strip('/') + '/camera_optical'
         req.child_frame_id = self.get_namespace().strip('/') + '/estimated_pose'
-        self.broadcaster.sendTransform(req)
+        if eul is not None and -0.65 < eul[0] < 0.65 and -0.65 < eul[1] < 0.65 and -0.65 < eul[2] < 0.65:
+            self.broadcaster.sendTransform(tf1)
+            self.broadcaster.sendTransform(tf2)
+            self.broadcaster.sendTransform(req)
         
         # Publish the raw estimation with no scaling
         # req = self.do_tf_calculations(est, 1)

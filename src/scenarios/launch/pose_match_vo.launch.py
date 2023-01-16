@@ -73,6 +73,8 @@ def generate_launch_description():
     #         parameters=[{
     #             'nc': nc,
     #             'verbose': 2,
+    #             'dock_dist': 1.5,
+    #             'set_off_on_cmd': True,
     #         }]
     #     )
     # )
@@ -156,13 +158,13 @@ def generate_launch_description():
                 namespace = ns,
             ),
         )
-        # ld.add_entity(
-        #     Node(
-        #         package = 'control',
-        #         executable = 'key_teleop',
-        #         namespace = ns,
-        #     ),
-        # )
+        ld.add_entity(
+            Node(
+                package = 'control',
+                executable = 'key_teleop',
+                namespace = ns,
+            ),
+        )
 
     # Estimation combiner
     ld.add_entity(

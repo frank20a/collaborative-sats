@@ -6,6 +6,10 @@ from std_msgs.msg import Empty
 from nav_msgs.msg import Odometry
 from rclpy.qos import QoSPresetProfiles
 from .tf_utils import get_state, vector_rotate_quaternion
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+from tf2_ros import LookupException, ExtrapolationException, ConnectivityException
+from rclpy.time import Time
 
 import numpy as np
 import os, sys
@@ -38,6 +42,7 @@ class MPCController2(Node):
         self.declare_parameter('dock_dist', 0.4)
         self.declare_parameter('dock_vel', 0.07)
         self.declare_parameter('prefix', 'chaser')
+        self.declare_parameter('set_off_on_cmd', False)
         
         self.verbose = self.get_parameter('verbose').get_parameter_value().integer_value
         self.nc = self.get_parameter('nc').get_parameter_value().integer_value
@@ -46,6 +51,10 @@ class MPCController2(Node):
         self.dock_dist = self.get_parameter('dock_dist').get_parameter_value().double_value
         self.dock_vel = 1 - self.get_parameter('dock_vel').get_parameter_value().double_value * self.dt
         self.prefix = self.get_parameter('prefix').get_parameter_value().string_value
+        self.set_off_on_cmd = self.get_parameter('set_off_on_cmd').get_parameter_value().bool_value
+
+        self.buffer = Buffer()
+        TransformListener(self.buffer, self)
 
         self.target_pose = None
         self.target_twist = None
@@ -54,6 +63,7 @@ class MPCController2(Node):
         self.cmd = Wrench()
         self.cmd_flag = False
         self.approach_flag = [False] * self.nc
+        self.offset_tf = [None] * self.nc
 
         # Generate offset
         self.offset = np.array([-1, 0, 0, 0, 0, 0, 1], dtype=np.float64)
@@ -128,6 +138,19 @@ class MPCController2(Node):
     def control_callback(self, msg: Empty):
         self.cmd_flag = not self.cmd_flag
         self.get_logger().info("Command flag set to {}".format(self.cmd_flag))
+
+        if self.set_off_on_cmd:
+            for i in range(self.nc):
+                self.offset[7*i: 7*(i+1)] = np.array([
+                    self.offset_tf[i].transform.translation.x,
+                    self.offset_tf[i].transform.translation.y,
+                    self.offset_tf[i].transform.translation.z,
+                    -self.offset_tf[i].transform.rotation.x,
+                    -self.offset_tf[i].transform.rotation.y,
+                    -self.offset_tf[i].transform.rotation.z,
+                    self.offset_tf[i].transform.rotation.w
+                ], dtype=np.float64)
+                self.get_logger().info(f'Setting chaser_{i} offset to {self.offset[7*i: 7*(i+1)]}')
 
     def approach_callback(self, chaser_num: int, msg: Empty):
         self.approach_flag[chaser_num] = not self.approach_flag[chaser_num]
@@ -231,7 +254,14 @@ class MPCController2(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = MPCController2()
-    rclpy.spin(node)
+    while rclpy.ok():
+        rclpy.spin_once(node)
+        
+        for i in range(node.nc):
+            try:
+                node.offset_tf[i] = node.buffer.lookup_transform('target/body', f'chaser_{i}/body', Time(seconds=0))
+            except (LookupException, ConnectivityException, ExtrapolationException):
+                pass
 
     node.destroy_node()
     rclpy.shutdown()
